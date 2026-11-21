@@ -1,0 +1,106 @@
+/* Factanza · sistema "Tessera" per la landing dell'hackathon.
+   Regole e motivazioni in DESIGN.md. Colori presi dalla favicon (tessere) e dal CSS di factanza.com. */
+
+:root {
+  /* --- base: il logo 3D --- */
+  --fz-azzurro: #86c4ff;   /* fondo del logo = primary-blue-light del sito */
+  --fz-notte: #1a1d56;     /* corpo della F ≈ secondary-blue-dark del sito (#1b1d53): testo, bordi, ombre */
+  --fz-carta: #f6f6f6;     /* secondary-background del sito */
+  --fz-bianco: #ffffff;
+  --fz-viola: #824dff;     /* primary-purple: il colore di factanza.com, solo per la chiusura */
+  --fz-testo-2: #4a4d7a;   /* testo secondario su carta (7,4:1) */
+
+  /* --- le 10 tessere della F, nell'ordine della ruota dei colori --- */
+  --t1: #d7007f; /* magenta */   --t2: #831f82; /* prugna */  --t3: #0075bf; /* blu */
+  --t4: #009fe3; /* ciano */     --t5: #00aca9; /* turchese */ --t6: #009469; /* verde */
+  --t7: #c8d400; /* lime */      --t8: #ffe000; /* giallo */  --t9: #f7a600; /* ambra */
+  --t10: #ea5b0c; /* arancio */
+
+  /* --- tipografia (alternative gratuite ai font a pagamento di Factanza, vedi DESIGN.md) --- */
+  --fz-font-display: "Anton", "Arial Narrow", sans-serif; /* al posto di gazzetta: maiuscolo stretto (Big Shoulders aveva la M chiusa) */
+  font-synthesis-weight: none; /* Anton ha un solo peso: niente grassetto finto dove i titoli chiedono 800 */
+  --fz-font: "Satoshi", system-ui, sans-serif;                            /* al posto di Neue Montreal e Agrandir */
+
+  /* --- forma: tutto si misura in tessere --- */
+  --tile: 8px;                 /* modulo base; spazi = multipli */
+  --fz-r: 6px;                 /* unico raggio per riquadri, bottoni, adesivi; le tessere restano a spigolo vivo */
+  --fz-bordo: 2px solid var(--fz-notte);
+  --fz-depth-s: 3px;           /* spessore: l'ombra piena È il corpo blu della F che sporge */
+  --fz-depth-m: 6px;
+  --fz-depth-l: 10px;
+
+  /* --- movimento --- */
+  --fz-ease-turn: cubic-bezier(.65, 0, .35, 1);   /* stessa curva del giro del logo (smootherstep) */
+  --fz-ease-pop: cubic-bezier(.34, 1.56, .64, 1); /* rimbalzo breve, come i pop del sito */
+  --fz-t-press: 120ms; --fz-t-hover: 220ms; --fz-t-enter: 600ms;
+  --fz-stagger: 60ms;          /* ritardo fra una tessera e la successiva */
+}
+
+/* --- componenti --- */
+/* Ogni pezzo con spessore usa --d: l'ombra piena (il corpo blu che sporge) è sempre "--d --d 0". */
+
+/* Bottone: tessera con spessore. Hover = si alza, click = si schiaccia fino a perdere lo spessore. */
+.fz-btn {
+  --d: var(--fz-depth-s); --dc: var(--fz-notte);
+  display: inline-flex; align-items: center; justify-content: center; text-decoration: none; /* anche quando è un link */
+  font: 700 1rem/1 var(--fz-font); color: var(--fz-notte); background: var(--fz-bianco);
+  border: var(--fz-bordo); border-radius: var(--fz-r); padding: 14px 22px; min-height: 48px; cursor: pointer;
+  box-shadow: var(--d) var(--d) 0 var(--dc);
+  transition: transform var(--fz-t-hover) var(--fz-ease-pop), box-shadow var(--fz-t-hover) var(--fz-ease-pop);
+}
+.fz-btn:hover { --d: calc(var(--fz-depth-s) + 2px); transform: translate(-2px, -2px); }
+.fz-btn:active { --d: 0px; transform: translate(var(--fz-depth-s), var(--fz-depth-s)); transition-duration: var(--fz-t-press); }
+.fz-btn:focus-visible { outline: 3px solid var(--fz-notte); outline-offset: 4px; }
+.fz-btn--primario { background: var(--t8); }
+.fz-btn--scuro { --dc: var(--t8); background: var(--fz-notte); color: var(--fz-bianco); border-color: var(--fz-bianco); }
+.fz-btn--scuro:focus-visible { outline-color: var(--t8); }
+
+/* Adesivo: la parola chiave del titolo, maiuscolo stretto su una tessera inclinata (dal sito: "I NOSTRI CONTENUTI"). */
+.fz-adesivo {
+  --d: var(--fz-depth-m);
+  display: inline-block; font: 800 clamp(2rem, 5vw, 3.5rem)/.95 var(--fz-font-display); text-transform: uppercase;
+  color: var(--fz-notte); background: var(--t8); padding: .1em .22em .02em; border-radius: var(--fz-r);
+  rotate: -2deg; box-shadow: var(--d) var(--d) 0 var(--fz-notte);
+}
+
+/* Riquadro: bianco con bordo e spessore. Un solo livello: niente riquadri dentro riquadri. */
+.fz-riquadro {
+  --d: var(--fz-depth-m);
+  background: var(--fz-bianco); border: var(--fz-bordo); border-radius: var(--fz-r);
+  box-shadow: var(--d) var(--d) 0 var(--fz-notte); padding: calc(var(--tile) * 3);
+}
+
+/* Tessera: il quadrato del logo, a spigolo vivo, con il suo spessore blu. Numeri dei passi, segnaposto. */
+.fz-tessera {
+  --d: var(--fz-depth-s);
+  display: inline-grid; place-items: center; width: calc(var(--tile) * 6); aspect-ratio: 1;
+  font: 800 1.5rem/1 var(--fz-font-display); color: var(--fz-notte); background: var(--t4);
+  box-shadow: var(--d) var(--d) 0 var(--fz-notte);
+}
+
+/* Fila di tessere: la barra superiore della F, come separatore fra sezioni o barra di avanzamento. */
+.fz-fila {
+  height: calc(var(--tile) * 2); border-bottom: var(--fz-depth-s) solid var(--fz-notte);
+  background: linear-gradient(90deg, var(--t1) 0 10%, var(--t2) 0 20%, var(--t3) 0 30%, var(--t4) 0 40%, var(--t5) 0 50%,
+    var(--t6) 0 60%, var(--t7) 0 70%, var(--t8) 0 80%, var(--t9) 0 90%, var(--t10) 0);
+}
+
+/* Evidenziatore: una sola parola per titolo, come nelle copertine dei caroselli. */
+.fz-evidenzia { background: var(--t8); color: var(--fz-notte); padding: 0 .12em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+/* Occhiello: etichetta sopra i titoli. */
+.fz-occhiello { font: 800 .95rem/1 var(--fz-font-display); letter-spacing: .06em; text-transform: uppercase; }
+
+/* Entrata "da piatto a volume": come il logo, l'elemento arriva piatto e poi prende spessore.
+   Si attiva aggiungendo .is-in (IntersectionObserver); --i = posizione nella fila, per l'effetto a cascata. */
+.fz-entra {
+  --ritardo: calc(var(--i, 0) * var(--fz-stagger));
+  transition: opacity var(--fz-t-enter) var(--fz-ease-turn) var(--ritardo), translate var(--fz-t-enter) var(--fz-ease-turn) var(--ritardo),
+    box-shadow 400ms var(--fz-ease-pop) calc(var(--ritardo) + 350ms); /* prima arriva piatto, poi spunta lo spessore */
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fz-entra:not(.is-in) { --d: 0px; opacity: 0; translate: 0 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fz-entra, .fz-btn { transition: none; }
+}

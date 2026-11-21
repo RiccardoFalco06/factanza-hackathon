@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Factanza · sistema Tessera</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap">
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.187.0/build/three.module.js" } }</script>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 400 1.0625rem/1.55 var(--fz-font); color: var(--fz-notte); background: var(--fz-carta); }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 calc(var(--tile) * 4); }
+  section { padding: calc(var(--tile) * 12) 0; }
+  h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
+  h2 { font: 700 clamp(2rem, 4vw, 3rem)/1.05 var(--fz-font); margin: 12px 0 32px; }
+  h3 { font: 700 1.25rem/1.2 var(--fz-font); margin-bottom: 6px; }
+  p { margin: 0; max-width: 62ch; }
+  .muted { color: var(--fz-testo-2); }
+  .grid { display: grid; gap: calc(var(--tile) * 3); }
+
+  /* apertura */
+  .hero { background: var(--fz-azzurro); padding: calc(var(--tile) * 8) 0 0; }
+  .hero .wrap { display: grid; grid-template-columns: 1.1fr .9fr; align-items: center; gap: 32px; }
+  .hero h1 { font: 800 clamp(3rem, 8vw, 6.5rem)/.9 var(--fz-font-display); text-transform: uppercase; letter-spacing: 0; }
+  .hero p { margin-top: 20px; font-size: 1.2rem; }
+  .logo3d { position: relative; height: 420px; }
+  .logo3d img { display: none; }
+  .logo3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .logo3d.is-3d { cursor: grab; touch-action: pan-y; }
+
+  /* colori */
+  .base { grid-template-columns: repeat(5, 1fr); }
+  .sw { border: var(--fz-bordo); border-radius: var(--fz-r); overflow: hidden; background: var(--fz-bianco); }
+  .sw i { display: block; height: 120px; border-bottom: var(--fz-bordo); }
+  .sw div { padding: 12px 14px 14px; font-size: .9rem; }
+  .sw b { display: block; font-size: 1rem; }
+  .tiles { display: grid; grid-template-columns: repeat(10, 1fr); gap: 14px; }
+  .tiles .fz-tessera { width: 100%; font-size: 1.1rem; }
+  .tiles small { display: block; margin-top: 10px; font-size: .78rem; text-align: center; }
+
+  /* tipografia */
+  .type { grid-template-columns: 220px 1fr; align-items: baseline; row-gap: 28px; }
+  .type > span { font-size: .85rem; color: var(--fz-testo-2); }
+
+  /* forme */
+  .forme { grid-template-columns: repeat(3, 1fr); align-items: start; }
+  .demo { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; min-height: 64px; }
+
+  /* sezione di esempio */
+  .passi { grid-template-columns: repeat(3, 1fr); }
+  .passi .fz-riquadro { display: grid; gap: 14px; align-content: start; }
+  .chiusura { background: var(--fz-viola); color: var(--fz-bianco); text-align: center; }
+  .chiusura h2 { margin: 0 auto 28px; max-width: 18ch; }
+  .notte { background: var(--fz-notte); color: var(--fz-bianco); }
+  .video { aspect-ratio: 16 / 9; border: 2px solid var(--fz-azzurro); border-radius: var(--fz-r); display: grid; place-items: center; color: var(--fz-azzurro); box-shadow: 10px 10px 0 var(--t8); }
+
+  .regole { grid-template-columns: 1fr 1fr; }
+  .regole ul { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; }
+  @media (max-width: 800px) {
+    .hero .wrap, .forme, .passi, .regole, .type { grid-template-columns: 1fr; }
+    .base { grid-template-columns: repeat(2, 1fr); }
+    .tiles { grid-template-columns: repeat(5, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="fz-occhiello">Sistema di design · landing hackathon</span>
+      <h1>Tessera<br>per Factanza</h1>
+      <p>Tutto nasce dalla F 3D: quadrati di colore a spigolo vivo sopra uno spessore blu notte. Sul sito diventa una regola sola: <span class="fz-evidenzia">ogni pezzo è una tessera con il suo spessore</span>.</p>
+    </div>
+    <div class="logo3d" role="img" aria-label="Factanza"><img src="assets/factanza-f.png" alt=""></div>
+  </div>
+  <div class="fz-fila" style="margin-top: 48px"></div>
+</header>
+
+<section>
+  <div class="wrap">
+    <span class="fz-occhiello">01 · Colori</span>
+    <h2>Tre colori fanno la pagina, <span class="fz-evidenzia">dieci</span> la accendono</h2>
+    <div class="grid base">
+      <div class="sw"><i style="background: var(--fz-azzurro)"></i><div><b>Azzurro #86c4ff</b>Fondo dell'apertura, come dietro al logo. Testo blu notte sopra: 8,4:1.</div></div>
+      <div class="sw"><i style="background: var(--fz-notte)"></i><div><b>Blu notte #1a1d56</b>Corpo della F: testo, bordi, spessori, sezione del video.</div></div>
+      <div class="sw"><i style="background: var(--fz-carta)"></i><div><b>Carta #f6f6f6</b>Fondo delle sezioni di lettura. Blu notte sopra: 14,4:1.</div></div>
+      <div class="sw"><i style="background: var(--fz-bianco)"></i><div><b>Bianco #ffffff</b>Riquadri e bottoni: la "faccia" della tessera.</div></div>
+      <div class="sw"><i style="background: var(--fz-viola)"></i><div><b>Viola #824dff</b>Il colore di factanza.com, solo per la chiusura. Testo bianco: 4,7:1.</div></div>
+    </div>
+    <p class="muted" style="margin: 40px 0 18px">Le dieci tessere della F, nell'ordine della ruota dei colori. Si usano piccole: numeri, adesivi, evidenziatori, la fila. Mai come fondo di una sezione intera.</p>
+    <div class="tiles" id="tiles">
+      <div><span class="fz-tessera fz-entra" style="--i:0; background: var(--t1)">1</span><small>#d7007f</small></div>
+      <div><span class="fz-tessera fz-entra" style="--i:1; background: var(--t2); color: #fff">2</span><small>#831f82</small></div>
+      <div><span class="fz-tessera fz-entra" style="--i:2; background: var(--t3); color: #fff">3</span><small>#0075bf</small></div>
+      <div><span class="fz-tessera fz-entra" style="--i:3; background: var(--t4)">4</span><small>#009fe3</small></div>
+      <div><span class="fz-tessera fz-entra" style="--i:4; background: var(--t5)">5</span><small>#00aca9</small></div>
+      <div><span class="fz-tessera fz-entra" style="--i:5; background: var(--t6); color: #fff">6</span><small>#009469</small></div>
+      <div><span class="fz-tessera fz-entra" style="--i:6; background: var(--t7)">7</span><small>#c8d400</small></div>
+      <div><span class="fz-tessera fz-entra" style="--i:7; background: var(--t8)">8</span><small>#ffe000</small></div>
+      <div><span class="fz-tessera fz-entra" style="--i:8; background: var(--t9)">9</span><small>#f7a600</small></div>
+      <div><span class="fz-tessera fz-entra" style="--i:9; background: var(--t10)">10</span><small>#ea5b0c</small></div>
+    </div>
+    <p style="margin-top: 24px"><button class="fz-btn" id="replay">Rivedi l'entrata</button></p>
+  </div>
+</section>
+
+<section style="background: var(--fz-bianco); border-block: var(--fz-bordo)">
+  <div class="wrap">
+    <span class="fz-occhiello">02 · Caratteri</span>
+    <h2>Stretto e maiuscolo per <span class="fz-evidenzia">farsi notare</span>, morbido per spiegare</h2>
+    <div class="grid type">
+      <span>Titolone · Anton, maiuscolo</span>
+      <div style="font: 800 clamp(3rem, 7vw, 5.5rem)/.9 var(--fz-font-display); text-transform: uppercase">Ti spieghiamo il mondo</div>
+      <span>Titolo · Satoshi 700, −2%</span>
+      <div style="font: 700 clamp(2rem, 4vw, 3rem)/1.05 var(--fz-font); letter-spacing: -0.02em">L'informazione che crea (in)dipendenza</div>
+      <span>Sottotitolo · Satoshi 500</span>
+      <div style="font: 500 1.35rem/1.35 var(--fz-font)">Accessibile ma non semplicistico: la complessità spiegata senza banalizzarla.</div>
+      <span>Testo · Satoshi 400, max 62 caratteri per riga</span>
+      <p>Tra le migliaia di cose che succedono ogni giorno scegliamo quelle che servono per capire il presente. Le spieghiamo in un minuto, con i fatti e le fonti, e poi se ne parla insieme.</p>
+      <span>Occhiello · Anton, +6%</span>
+      <div class="fz-occhiello">Passo 2 · La community</div>
+      <span>Adesivo · parola chiave del titolo</span>
+      <div><span class="fz-adesivo">I nostri contenuti</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="fz-occhiello">03 · Forme</span>
+    <h2>Un modulo solo: <span class="fz-evidenzia">la tessera</span></h2>
+    <div class="grid forme">
+      <div class="grid">
+        <h3>Spessore</h3>
+        <p class="muted">L'ombra è sempre piena, blu notte, verso destra e in basso: è il corpo della F che sporge. 3px per i pezzi piccoli, 6px per i riquadri, 10px per il video.</p>
+        <div class="demo"><span class="fz-tessera" style="background: var(--t8)">F</span><span class="fz-tessera" style="background: var(--t1)"></span><span class="fz-tessera" style="background: var(--t5)"></span></div>
+      </div>
+      <div class="grid">
+        <h3>Bottoni</h3>
+        <p class="muted">Passa sopra: si alzano. Clicca: si schiacciano e perdono lo spessore. Raggio 6px, testo massimo 3 parole.</p>
+        <div class="demo"><button class="fz-btn fz-btn--primario">Prova il prototipo</button><button class="fz-btn">Guarda il video</button></div>
+      </div>
+      <div class="grid">
+        <h3>Fila di tessere</h3>
+        <p class="muted">La barra in alto della F diventa il separatore fra le sezioni e la barra di avanzamento del racconto.</p>
+        <div class="fz-fila"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="notte">
+  <div class="wrap">
+    <span class="fz-occhiello" style="color: var(--fz-azzurro)">04 · Esempio · sezione del video</span>
+    <h2>Il blu del corpo della F diventa <span class="fz-evidenzia">il fondo</span></h2>
+    <div class="video">Qui il video della demo</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="fz-occhiello">05 · Esempio · i passi non mostrabili nel video</span>
+    <h2>Come funziona, <span class="fz-evidenzia">in tre passi</span></h2>
+    <div class="grid passi" id="passi">
+      <div class="fz-riquadro fz-entra" style="--i:0"><span class="fz-tessera" style="background: var(--t1)">1</span><h3>Factanza spiega la notizia</h3><p class="muted">Contenuto di esempio: un carosello sulla legge di bilancio, in un minuto.</p></div>
+      <div class="fz-riquadro fz-entra" style="--i:1"><span class="fz-tessera" style="background: var(--t4)">2</span><h3>Risponde nei commenti</h3><p class="muted">La prima domanda riceve subito la risposta con le fonti.</p></div>
+      <div class="fz-riquadro fz-entra" style="--i:2"><span class="fz-tessera" style="background: var(--t8)">3</span><h3>Poi parla la community</h3><p class="muted">Le persone continuano la discussione fra loro.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="chiusura">
+  <div class="wrap">
+    <span class="fz-occhiello">06 · Esempio · chiusura</span>
+    <h2 style="margin-top: 12px">Ora tocca a te: prova la piattaforma</h2>
+    <button class="fz-btn fz-btn--primario">Prova il prototipo</button>
+  </div>
+</section>
+
+<section style="background: var(--fz-bianco); border-top: var(--fz-bordo)">
+  <div class="wrap grid regole">
+    <div><h3>Sì</h3><ul>
+      <li>Una parola evidenziata per titolo, non di più.</li>
+      <li>Tessere a spigolo vivo; tutto il resto ha raggio 6px.</li>
+      <li>Spessori pieni e blu notte, sempre verso destra in basso.</li>
+      <li>Ogni elemento arriva piatto e poi prende spessore, come il logo.</li>
+      <li>Foto in bianco e nero con un solo colore di tessera, come i collage di Factanza.</li>
+    </ul></div>
+    <div><h3>No</h3><ul>
+      <li>Ombre sfumate, gradienti, vetro smerigliato.</li>
+      <li>Sezioni intere con un colore di tessera come fondo.</li>
+      <li>Testo bianco su fucsia, arancio o giallo: non si legge.</li>
+      <li>Animazioni che girano all'infinito, a parte il logo che oscilla piano.</li>
+      <li>Le nuvole del sito di Factanza: qui la forma è il quadrato.</li>
+    </ul></div>
+  </div>
+</section>
+
+<script type="module" src="logo3d.js"></script>
+<script>
+  // entrata "da piatto a volume" quando l'elemento arriva sullo schermo
+  const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('is-in')), { threshold: .3 });
+  document.querySelectorAll('.fz-entra').forEach(el => io.observe(el));
+  document.getElementById('replay').onclick = () => {
+    const t = document.querySelectorAll('#tiles .fz-entra');
+    t.forEach(el => el.classList.remove('is-in'));
+    requestAnimationFrame(() => requestAnimationFrame(() => t.forEach(el => el.classList.add('is-in'))));
+  };
+</script>
+</body>
+</html>

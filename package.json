@@ -1,0 +1,6 @@
+{
+  "name": "factanza-landing",
+  "private": true,
+  "scripts": { "export": "python3 -I tools/export.py" },
+  "devDependencies": { "esbuild": "^0.25.0", "three": "0.187.0" }
+}

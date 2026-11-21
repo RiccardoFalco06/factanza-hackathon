@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#86c4ff">
+<title>One story leads to another · Factanza Hackathon</title>
+<meta name="description" content="A prototype for Challenge 2 of the Factanza Hackathon: Zanichelli deep dives, quizzes, connected content and followed stories that keep people on Factanza.">
+<link rel="icon" href="assets/factanza-f.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap">
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.187.0/build/three.module.js" } }</script>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<!-- EXAMPLE CONTENT: news, figures and the Zanichelli partnership are made up until the demo and the video exist.
+     English is written here; the Italian version of every [data-t] element is in i18n.js.
+     Demo link and video: at the top of site.js (DEMO_URL, VIDEO_SRC). -->
+
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="brand" href="#" data-t-aria="brand.aria" aria-label="Back to top"><img src="assets/factanza-f.png" alt=""><span data-t="brand">One story leads to another</span></a>
+    <nav aria-label="Sections">
+      <a href="#video" data-t="nav.video">Video</a>
+      <a href="#how" data-t="nav.how">How it works</a>
+      <a href="#path" data-t="nav.path">The path</a>
+      <a href="#faq" data-t="nav.faq">Questions</a>
+    </nav>
+    <div class="lang" role="group" aria-label="Language">
+      <button data-lang="en" aria-pressed="true" aria-label="English">EN</button>
+      <button data-lang="it" aria-pressed="false" aria-label="Italiano">IT</button>
+    </div>
+    <a class="fz-btn fz-btn--primario" href="#try" data-t="cta.top">Try the demo</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <span class="fz-occhiello" data-t="hero.eyebrow">Factanza Hackathon · Challenge 2</span>
+        <h1 data-t="hero.title">One story leads to another.<br><span class="fz-adesivo">And you stay on Factanza</span></h1>
+        <p data-t="hero.lead">Zanichelli deep dives, quizzes, connected content and stories to follow: every extra minute on the platform brings people closer to Factanza's services, from the Academy to the subscription.</p>
+        <div class="azioni">
+          <a class="fz-btn fz-btn--primario" href="#try" data-t="hero.cta1">Try the demo</a>
+          <a class="fz-btn" href="#video" data-t="hero.cta2">Watch the video</a>
+        </div>
+      </div>
+      <div class="logo3d" role="img" aria-label="Factanza">
+        <img src="assets/factanza-f.png" alt="">
+      </div>
+    </div>
+    <div class="fz-fila"></div>
+  </section>
+
+  <section class="video" id="video">
+    <div class="wrap">
+      <div class="video-head">
+        <div>
+          <span class="fz-occhiello" data-t="video.eyebrow">The demo in 90 seconds</span>
+          <h2 style="margin-top: 12px" data-t="video.title">See how it works</h2>
+        </div>
+        <p style="color: var(--fz-azzurro)" data-t="video.note">Recorded on the real prototype, no cuts.</p>
+      </div>
+      <div class="frame" id="frame">
+        <!-- site.js puts the video here when VIDEO_SRC is set -->
+        <div class="attesa"><span class="play"><i class="ph-fill ph-play"></i></span><p data-t="video.wait">The demo video goes here</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="racconto" id="how">
+    <div class="wrap">
+      <header>
+        <span class="fz-occhiello" data-t="how.eyebrow">The four pieces</span>
+        <h2 data-t="how.title">You come for one story, you <span class="fz-evidenzia">stay</span> for the rest</h2>
+      </header>
+
+      <div class="slides">
+        <!-- 1 · connected content, zero friction -->
+        <article class="slide">
+          <div class="media" style="background: var(--fz-azzurro)">
+            <div class="app">
+              <div class="app-bar"><img src="assets/factanza-f.png" alt=""><span data-t="s1.bar">From Instagram</span><span class="pill" data-t="s1.pill">No sign-up</span></div>
+              <div class="cover" style="background: var(--t1)"><b data-t="s1.cover">Italy's 2027 budget: <span>what changes</span> at 25</b><small data-t="s1.coverMeta">Carousel · 1 min</small><img src="assets/factanza-f.png" alt=""></div>
+              <div class="dopo">
+                <span class="fz-occhiello" data-t="s1.next">Keep going</span>
+                <div class="link-card fz-entra" style="--i:0"><span class="fz-tessera" style="background: var(--t8)"><i class="ph-bold ph-headphones"></i></span><div><b data-t="s1.l1t">Squattrinati · Renting at 25</b><small data-t="s1.l1m">Podcast · 12 min</small></div></div>
+                <div class="link-card fz-entra" style="--i:1"><span class="fz-tessera" style="background: var(--t5)"><i class="ph-bold ph-play"></i></span><div><b data-t="s1.l2t">The rent bonus in 60 seconds</b><small data-t="s1.l2m">Video · 1 min</small></div></div>
+              </div>
+              <div class="salva fz-entra" style="--i:2"><span data-t="s1.save">You've seen 3 pieces. Save your progress?</span><b data-t="s1.saveBtn">One tap <i class="ph-bold ph-apple-logo"></i></b></div>
+            </div>
+          </div>
+          <div class="testo">
+            <div class="numero"><span class="fz-tessera" style="background: var(--t1)">1</span><span class="fz-occhiello" data-t="s1.tag">All connected, zero friction</span></div>
+            <h3 data-t="s1.h">From Instagram into Factanza in one tap, and every piece leads to the next.</h3>
+            <p class="muted" data-t="s1.p">No sign-up to get in, and you pick up where you left off. Under every carousel you find the podcast, the video and the deep dive on the same topic. The account comes later, once there's something worth saving.</p>
+          </div>
+        </article>
+
+        <!-- 2 · Zanichelli deep dives -->
+        <article class="slide">
+          <div class="media" style="background: var(--t4)">
+            <div class="app">
+              <div class="articolo">
+                <span class="fz-occhiello" data-t="s2.meta">Economy · 4 min</span>
+                <p data-t="s2.text">To fund the bonus, the government is counting on a lower <mark class="parola">spread</mark> in the coming months, meaning lighter interest payments on the debt.</p>
+              </div>
+              <div class="definizione fz-entra" style="--i:0">
+                <div class="def-head"><b>spread</b><span class="pill" data-t="s2.pill">Zanichelli dictionary</span></div>
+                <p data-t="s2.def">The difference in yield between two countries' government bonds, used to measure market confidence.</p>
+                <div class="def-link fz-entra" style="--i:2" data-t="s2.link"><i class="ph-bold ph-books"></i> Go deeper: why the spread matters for your mortgage <small>Zanichelli card · 3 min</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="testo">
+            <div class="numero"><span class="fz-tessera" style="background: var(--t4)">2</span><span class="fz-occhiello" data-t="s2.tag">Zanichelli deep dives</span></div>
+            <h3 data-t="s2.h">A hard word is no longer a reason to leave.</h3>
+            <p class="muted" data-t="s2.p">Tap a term and the Zanichelli dictionary definition opens right there, without changing page. Anyone who wants more finds the deep-dive card: more time on the content, more trust in the source.</p>
+          </div>
+        </article>
+
+        <!-- 3 · quiz (you can try it) -->
+        <article class="slide">
+          <div class="media" style="background: var(--t8)">
+            <div class="app quiz" id="quiz">
+              <div class="quiz-head"><span class="fz-occhiello" data-t="s3.meta">Weekly quiz · 3 of 5</span><span class="serie" data-t="s3.streak"><i class="ph-fill ph-fire"></i> 4 weeks in a row</span></div>
+              <p class="domanda" data-t="s3.q">Up to what age can you apply for the new rent bonus?</p>
+              <div class="opzioni">
+                <button class="opz" data-ok="0" data-t="s3.o1">Age 25</button>
+                <button class="opz" data-ok="1" data-t="s3.o2">Age 31</button>
+                <button class="opz" data-ok="0" data-t="s3.o3">Age 35</button>
+              </div>
+              <p class="esito" aria-live="polite" data-t="s3.hint">Try it: tap an answer.</p>
+            </div>
+          </div>
+          <div class="testo">
+            <div class="numero"><span class="fz-tessera" style="background: var(--t8)">3</span><span class="fz-occhiello" data-t="s3.tag">Quizzes</span></div>
+            <h3 data-t="s3.h">Five questions on the week's news. And a streak you don't want to break.</h3>
+            <p class="muted" data-t="s3.p">The quiz turns what you read into a two-minute game. The weekly streak and the comparison with the community bring people back every Monday, and every answer links to the piece that explains it.</p>
+          </div>
+        </article>
+
+        <!-- 4 · followed stories -->
+        <article class="slide">
+          <div class="media" style="background: var(--fz-carta)">
+            <div class="app">
+              <div class="notifica fz-entra" style="--i:0"><img src="assets/factanza-f.png" alt=""><div><b data-t="s4.notTitle">New on a story you follow</b><small data-t="s4.notMeta">2027 budget · the Senate has voted</small></div></div>
+              <div class="storia">
+                <div class="storia-head"><b data-t="s4.story">Italy's 2027 budget</b><span class="pill segui" data-t="s4.follow"><i class="ph-bold ph-check"></i> Following</span></div>
+                <ol class="timeline">
+                  <li class="fz-entra" style="--i:1"><span style="background: var(--t10)"></span><div data-t="s4.t1"><b>Today</b> The Senate approves the text: what's left of the rent bonus <em>New</em></div></li>
+                  <li class="fz-entra" style="--i:2"><span style="background: var(--t8)"></span><div data-t="s4.t2"><b>November 12</b> The Chamber's changes, explained</div></li>
+                  <li class="fz-entra" style="--i:3"><span style="background: var(--t4)"></span><div data-t="s4.t3"><b>November 3</b> The first draft in 1 minute</div></li>
+                </ol>
+              </div>
+            </div>
+          </div>
+          <div class="testo">
+            <div class="numero"><span class="fz-tessera" style="background: var(--t6); color: var(--fz-bianco)">4</span><span class="fz-occhiello" data-t="s4.tag">Followed stories</span></div>
+            <h3 data-t="s4.h">Follow a story and Factanza calls you back when something changes.</h3>
+            <p class="muted" data-t="s4.p">Long-running news (a law, an election, a war) becomes a timeline to follow. Every update is a concrete reason to come back, and people who come back often are the ones who subscribe.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="percorso" id="path">
+    <div class="wrap">
+      <span class="fz-occhiello" data-t="path.eyebrow">The goal</span>
+      <h2 data-t="path.title">Every extra minute leads to <span class="fz-evidenzia">Factanza's services</span></h2>
+      <ol class="catena">
+        <li class="fz-entra" style="--i:0"><span class="fz-tessera" style="background: var(--t1)">1</span><b data-t="path.1b">Arrives for one story</b><small data-t="path.1s">1 minute, from Instagram or TikTok</small></li>
+        <li class="fz-entra" style="--i:1"><span class="fz-tessera" style="background: var(--t4)">2</span><b data-t="path.2b">Goes deeper</b><small data-t="path.2s">+4 minutes with podcasts and Zanichelli cards</small></li>
+        <li class="fz-entra" style="--i:2"><span class="fz-tessera" style="background: var(--t8)">3</span><b data-t="path.3b">Plays</b><small data-t="path.3s">+2 minutes a week with the quiz</small></li>
+        <li class="fz-entra" style="--i:3"><span class="fz-tessera" style="background: var(--t6); color: var(--fz-bianco)">4</span><b data-t="path.4b">Comes back</b><small data-t="path.4s">3 times a week for followed stories</small></li>
+        <li class="fz-entra arrivo" style="--i:4"><span class="fz-tessera" style="background: var(--fz-viola); color: var(--fz-bianco)"><i class="ph-bold ph-star"></i></span><b data-t="path.5b">Discovers the services</b><small data-t="path.5s">Academy, subscription, events, shop</small></li>
+      </ol>
+      <p class="muted nota" data-t="path.note">Example figures, to be measured in a pilot. The idea: more time and more return visits mean more chances to offer the Academy and the subscription to people who are already engaged.</p>
+    </div>
+  </section>
+
+  <section class="domande" id="faq">
+    <div class="wrap">
+      <div>
+        <span class="fz-occhiello" data-t="faq.eyebrow">Questions</span>
+        <h2 data-t="faq.title">What you'll ask us</h2>
+      </div>
+      <div class="faq">
+        <details><summary data-t="faq.q1">Why Zanichelli?</summary><p data-t="faq.a1">It brings the authority of a dictionary everyone in Italy knows from school, and Factanza doesn't have to write definitions from scratch. The partnership in the prototype is a proposal, not a done deal.</p></details>
+        <details><summary data-t="faq.q2">Aren't quizzes too school-like?</summary><p data-t="faq.a2">Five questions a week, in Factanza's voice, with a streak to keep alive. More game than homework, and every answer leads to the piece that explains it.</p></details>
+        <details><summary data-t="faq.q3">Why not ask people to sign up right away?</summary><p data-t="faq.a3">Every extra screen at the door loses people. You get in straight away, and the account is requested once there's something to save: progress, quizzes, followed stories.</p></details>
+        <details><summary data-t="faq.q4">How does it make money?</summary><p data-t="faq.a4">People who stay longer and come back often see the Academy, the subscription and events at the right moment. Spaces inside quizzes and stories can also host partners that fit the topic.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="chiusura" id="try">
+    <div class="wrap">
+      <div>
+        <span class="fz-occhiello" data-t="try.eyebrow">Your turn</span>
+        <h2 style="margin-top: 14px" data-t="try.title">Try the demo</h2>
+        <p data-t="try.lead">Scan the code with your phone: open a news piece, take the quiz and follow your first story.</p>
+        <div class="azioni">
+          <a class="fz-btn fz-btn--primario" id="demo-link" href="#" data-t="try.btn">Open the demo</a>
+          <span class="link" id="demo-url"></span>
+        </div>
+      </div>
+      <div class="qr"><div id="qr" role="img" data-t-aria="try.qrAria" aria-label="QR code to open the demo"></div><small id="qr-label"></small></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span data-t="foot.1">A project for the Factanza Hackathon · Challenge 2</span>
+    <span data-t="foot.2">News, figures and partnerships on this page are examples.</span>
+  </div>
+</footer>
+
+<script src="vendor/qrcode.js"></script>
+<script src="i18n.js"></script>
+<script src="site.js"></script>
+<script type="module" src="logo3d.js"></script>
+</body>
+</html>
