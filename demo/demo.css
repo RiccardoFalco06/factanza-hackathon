@@ -12,7 +12,9 @@ button, input { font: inherit; color: inherit; }
 button { cursor: pointer; }
 h1, h2, p { margin: 0; }
 img { display: block; max-width: 100%; }
-mark { background: var(--t8); color: var(--fz-notte); padding: 0 .12em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+/* Anton ha un riquadro alto 1,5em: il giallo sta solo dietro le maiuscole, e dietro (z-index) al testo della riga sopra. */
+mark { position: relative; z-index: -1; background: linear-gradient(var(--t8) 0 0) 0 .27em / 100% .98em no-repeat; color: var(--fz-notte); padding: 0 .12em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+:has(> mark) { isolation: isolate; }
 ::selection { background: var(--t8); color: var(--fz-notte); }
 input { caret-color: var(--t1); }
 :focus-visible { outline: 3px solid var(--fz-notte); outline-offset: 2px; }
