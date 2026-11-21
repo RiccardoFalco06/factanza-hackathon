@@ -14,7 +14,7 @@ save();
 
 const $ = s => document.querySelector(s);
 const view = $('#view');
-const ic = (name, fill) => `<i class="ph-${fill ? 'fill' : 'bold'} ph-${name}" aria-hidden="true"></i>`;
+const ic = (name, fill) => `<i class="ph-${fill ? 'fill' : 'duotone'} ph-${name}" aria-hidden="true"></i>`; // due toni: contorno blu notte, riempimento giallo come l'evidenziatore
 const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const fmt = n => n >= 10000 ? Math.round(n / 1000) + 'k' : n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n);
 const ago = ts => { const m = Math.round((Date.now() - ts) / 60000); return m < 1 ? 'now' : m < 60 ? `${m}m` : `${Math.round(m / 60)}h`; };
@@ -240,7 +240,7 @@ V.home = () => {
 const storyList = () => { const st = Object.keys(EV).filter(id => !EV[id].live && !EV[id].upcoming); return st.length ? `<h2 class="sec">Long stories to follow</h2><div class="list">${st.map(id => `<a class="card" href="#/e/${id}"><span class="fz-tessera photo-tile" style="--c: var(--${EV[id].color})"><img src="${EV[id].image}" alt=""></span><span class="card-txt"><b>${esc(EV[id].title)}</b><small>${EV[id].updates.length} updates · ${fmt(EV[id].followers)} following</small></span>${ic('caret-right')}</a>`).join('')}</div>` : ''; };
 function liveCard(id, i = 0) { // evento da scoprire: foto in bianco e nero con il colore della sua tessera, come i collage di Factanza
   const ev = EV[id];
-  return `<div class="live-card fz-entra" style="--i:${i}; --c: var(--${ev.color})"><a href="#/e/${id}" class="live-photo"><img src="${ev.image}" alt="" loading="lazy">
+  return `<div class="live-card fz-entra" style="--i:${i}; --c: var(--${ev.color})"><a href="#/e/${id}" class="live-photo"><img src="${ev.image}" alt="">
       <span class="live-photo-top">${status(ev)}<span class="chip">${ev.kind}</span></span><img class="f" src="../assets/factanza-f.png" alt=""></a>
     <a href="#/e/${id}" class="live-title">${marked(ev.title, ev.mark)}</a>
     <span class="live-foot"><small>${ev.live ? `<b data-watch="${id}">${fmt(ev.watching)}</b> watching` : `${fmt(ev.followers)} following`}</small>${followBtn(id)}</span></div>`;
@@ -249,7 +249,7 @@ function cover(id, i) {
   const p = PIECES[id], s = p.slides[0];
   return `<a class="cover-mini fz-entra" style="--i:${i}; background: var(--${p.color})" href="${href(id)}"><b>${s.big} <mark>${s.mark}</mark> ${s.after}</b><img src="../assets/factanza-f.png" alt=""></a>`;
 }
-const showTile = (key, i = 0) => { const s = PODCASTS[key]; return `<a class="show-tile fz-entra" style="--i:${i}; --c: var(--${s.color})" href="#/show/${key}"><span class="show-art"><b>${s.name}</b><img src="../assets/factanza-f.png" alt=""></span><small>${s.live || `${s.eps.length} episodes`}</small></a>`; };
+const showTile = (key, i = 0) => { const s = PODCASTS[key]; return `<a class="show-tile fz-entra" style="--i:${i}; --c: var(--${s.color})" href="#/show/${key}"><span class="show-art"><b>${s.name}</b><img src="../assets/factanza-f.png" alt=""></span><small>${s.live || `${s.eps.length} ${s.eps.length === 1 ? 'episode' : 'episodes'}`}</small></a>`; };
 const lessonCard = () => { const c = COURSES.dcs; return `<a class="lesson-card fz-entra" href="#/lesson/dcs"><span class="lesson-play">${ic('play', true)}</span><span><small>${S.lesson ? 'Continue' : 'First lesson free'}</small><b>${c.lesson.title}</b><small>${c.title} · ${c.lesson.min} min</small></span></a>`; };
 const gameCard = () => `<a class="game-card fz-entra" href="#/game"><span class="game-art">${['t1', 't4', 't8', 't6'].map(c => `<span style="background: var(--${c})"></span>`).join('')}</span><span><small>Our board game, now in the app</small><b>${GAME.title}</b><small>Up to 4 friends · 15 min</small></span></a>`;
 
