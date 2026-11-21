@@ -5,7 +5,7 @@
     "export": "python3 -I tools/export.py",
     "start": "node --no-warnings server/index.mjs",
     "share": "zsh server/share.sh",
-    "reset-live": "node -e \"const c=require('./server/data/supabase.json');fetch('http://127.0.0.1:'+(process.env.PORT||8790)+'/api/admin/reset',{method:'POST',headers:{'x-admin-key':c.server_key}}).then(r=>r.text()).then(console.log)\""
+    "reset-live": "node -e \"const c=require('./server/data/supabase.json');fetch('http://127.0.0.1:'+(process.env.PORT||8790)+'/api/admin/reset',{method:'POST',headers:{'x-admin-key':c.server_key,'content-type':'application/json'}}).then(r=>r.text()).then(console.log)\""
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

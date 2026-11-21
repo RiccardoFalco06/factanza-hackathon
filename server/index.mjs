@@ -31,6 +31,9 @@ async function rpc(name, args = {}) {
 const rome = new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' });
 let cycleStart = 0;
 const released = {}; // evento → aggiornamenti della coda già usciti in questo giro
+// hasOwn: "__proto__" o "constructor" non sono eventi; upd solo intero (0.5 rompeva Supabase)
+const known = id => typeof id === 'string' && Object.hasOwn(EVENTS, id);
+const okUpd = (id, upd) => Number.isInteger(upd) && upd >= 0 && upd < items(id).length;
 const items = id => [...EVENTS[id].updates, ...released[id]];
 async function newCycle(now = Date.now()) {
   cycleStart = now;
@@ -122,14 +125,19 @@ async function boot() {
 }
 
 // ---------- regole per i commenti veri ----------
-const BAD = /\b(cazz\w*|stronz\w*|puttan\w*|troi\w*|frocio|negro|ritardat\w*|vaffanculo|coglion\w*|fuck\w*|shit|bitch|retard\w*|nigg\w*|fag\w*)\b/i;
+// forme precise (niente "fagioli", "puttanesca", "ritardatario"); il testo si normalizza prima: 0→o, fuuuck→fuck, accenti via
+const BAD = /\b(caz+(o|i|ata|ate|one|oni)|stronz\w*|put+an(a|e|ata|ate)|troi[ae]|froci[oe]?|negr[oi]|(vaf+an?|f+an)cul\w*|cogli?on(e|i|a|ata|ate)|merd(a|e|ata|ate|oso|osa)|fuck\w*|fck\w*|shit\w*|bitch\w*|retard(ed|s)?|nig+(er|a)s?|fag+ots?|fags?)\b/i;
+const LEET = { 0: 'o', 1: 'i', 3: 'e', 4: 'a', 5: 's', 7: 't', '@': 'a', $: 's' };
+const rude = s => BAD.test(s) || BAD.test(s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[013457@$]/g, c => LEET[c]).replace(/(.)\1{2,}/g, '$1'));
+let total = []; // tutti i commenti veri dell'ultimo minuto: tetto comune se qualcuno falsifica l'IP
 const hits = new Map(); // ip → [tempi dei commenti recenti]
 function allowed(ip) {
   const now = Date.now(), list = (hits.get(ip) || []).filter(t => now - t < 60_000);
-  if (list.length && now - list.at(-1) < 3000 || list.length >= 20) return false;
-  list.push(now); hits.set(ip, list); return true;
+  total = total.filter(t => now - t < 60_000);
+  if (list.length && now - list.at(-1) < 3000 || list.length >= 20 || total.length >= 90) return false;
+  list.push(now); total.push(now); hits.set(ip, list); return true;
 }
-const clean = (s, max) => String(s ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+const clean = (s, max) => [...String(s ?? '').replace(/[\u200b-\u200f\u2028-\u202e\u2060-\u2064\ufeff]/g, '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim()].slice(0, max).join('');
 
 // ---------- http ----------
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
@@ -145,9 +153,9 @@ async function body(req) {
 }
 
 const server = createServer(async (req, res) => {
-  const url = new URL(req.url, 'http://x');
-  const path = decodeURIComponent(url.pathname);
-  const ip = req.headers['cf-connecting-ip'] || req.socket.remoteAddress;
+  let url, path; try { url = new URL(req.url, 'http://x'); path = decodeURIComponent(url.pathname); } catch { return json(res, 400, { error: 'bad url' }); }
+  // dietro Vercel cf-connecting-ip è il server di Vercel: l'IP vero è in x-vercel-forwarded-for (falsificabile solo dal link del tunnel, c'è il tetto comune)
+  const ip = (req.headers['x-vercel-id'] && req.headers['x-vercel-forwarded-for']) || req.headers['cf-connecting-ip'] || req.socket.remoteAddress;
   try {
     if (path === '/api/state') return json(res, 200, await state());
     if (path === '/api/stream') {
@@ -165,15 +173,17 @@ const server = createServer(async (req, res) => {
     }
     if (path === '/api/comments' && req.method === 'GET') {
       const ev = url.searchParams.get('event'), upd = +url.searchParams.get('upd');
-      if (!EVENTS[ev] || !(upd >= 0 && upd < items(ev).length)) return json(res, 404, { error: 'not found' });
+      if (!known(ev) || !okUpd(ev, upd)) return json(res, 404, { error: 'not found' });
       return json(res, 200, { comments: await rpc('list_comments', { p_event: ev, p_upd: upd, p_limit: 60 }) });
     }
     if (req.method === 'POST' && path.startsWith('/api/')) {
+      if (!/^application\/json\b/.test(req.headers['content-type'] || '')) return json(res, 415, { error: 'JSON only' }); // un altro sito non può scrivere senza permesso (CORS)
       const b = await body(req);
+      if (!b || typeof b !== 'object') return json(res, 400, { error: 'bad body' });
       if (path === '/api/comments') {
         const ev = b.event, upd = +b.upd, name = clean(b.name, 24) || 'Guest', text = clean(b.text, 200);
-        if (!EVENTS[ev] || !(upd >= 0 && upd < items(ev).length) || !text) return json(res, 400, { error: 'Something is missing in your comment.' });
-        if (BAD.test(text) || BAD.test(name)) return json(res, 422, { error: "Let's keep it kind: this comment was not published." });
+        if (!known(ev) || !okUpd(ev, upd) || !text) return json(res, 400, { error: 'Something is missing in your comment.' });
+        if (rude(text) || rude(name)) return json(res, 422, { error: "Let's keep it kind: this comment was not published." });
         if (!allowed(ip)) return json(res, 429, { error: 'Easy! Wait a few seconds before the next comment.' });
         const c = await post(ev, upd, name, /^t([1-9]|10)$/.test(b.color) ? b.color : 't8', text, false);
         setTimeout(() => { // qualcuno della community risponde: la diretta è fatta di persone
@@ -184,10 +194,10 @@ const server = createServer(async (req, res) => {
       }
       if (path === '/api/react' || path === '/api/follow') {
         const ev = b.event, d = b.on ? 1 : -1;
-        if (!EVENTS[ev]) return json(res, 400, { error: 'unknown event' });
+        if (!known(ev)) return json(res, 400, { error: 'unknown event' });
         if (path === '/api/follow') { const n = EVENTS[ev].followers + await rpc('bump_follow', { p_key: ADMIN, p_event: ev, p_d: d }); send('follow', { event: ev, n }); return json(res, 200, { n }); }
         const upd = +b.upd;
-        if (!(upd >= 0 && upd < items(ev).length)) return json(res, 400, { error: 'unknown update' });
+        if (!okUpd(ev, upd)) return json(res, 400, { error: 'unknown update' });
         const n = reactBase(upd) + await rpc('bump_react', { p_key: ADMIN, p_event: ev, p_upd: upd, p_d: d });
         send('react', { event: ev, upd, n });
         return json(res, 200, { n });

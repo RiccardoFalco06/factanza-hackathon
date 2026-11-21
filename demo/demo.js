@@ -7,8 +7,19 @@ const KEY = 'fz-demo-v2';
 const fresh = () => ({ seen: [], minutes: 0, streak: 3, quiz: null, follows: [], signed: false, askedSave: false, fromIg: true,
   lesson: false, name: '', news: { pills: true, feed: false }, notify: { events: true, streak: true }, reminders: [], reacted: [] });
 let S;
-try { S = { ...fresh(), ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { S = fresh(); }
-if (new URLSearchParams(location.search).has('reset')) S = fresh();
+function sane(x) { // lo stato salvato può essere vecchio o rovinato: si tiene solo quello che ha la forma giusta
+  const f = fresh(), s = { ...f }, own = (o, id) => typeof id === 'string' && Object.hasOwn(o, id);
+  for (const k in f) if (k !== 'quiz' && x && x[k] != null && typeof x[k] === typeof f[k] && Array.isArray(x[k]) === Array.isArray(f[k])) s[k] = x[k];
+  const q = x?.quiz;
+  s.quiz = q && typeof q === 'object' && Number.isInteger(q.i) && q.i >= 0 && q.i < QUIZ.questions.length && Array.isArray(q.answers) ? q : null;
+  s.news = { ...f.news, ...s.news }; s.notify = { ...f.notify, ...s.notify };
+  s.seen = s.seen.filter(id => own(PIECES, id)); s.follows = s.follows.filter(id => typeof id === 'string');
+  if (!Number.isFinite(s.minutes)) s.minutes = 0; if (!Number.isFinite(s.streak)) s.streak = 3;
+  return s;
+}
+try { S = sane(JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { S = fresh(); }
+if (new URLSearchParams(location.search).has('reset')) { S = fresh(); history.replaceState(null, '', location.pathname + location.hash); } // una volta sola, non a ogni ricarica
+addEventListener('storage', e => { if (e.key !== KEY || !e.newValue) return; try { S = sane(JSON.parse(e.newValue)); render(false); } catch {} });
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { /* navigazione privata: lo stato vive finché la pagina è aperta */ } };
 save();
 
@@ -34,7 +45,8 @@ const lit = new Set(); // righe del tabellone accese finché non le apri
 async function load() {
   try {
     const r = await fetch('/api/state', { cache: 'no-store' });
-    const d = await r.json(); EV = d.events; seq = d.seq; online = true;
+    const d = await r.json(); if (!r.ok || !d || typeof d.events !== 'object') throw new Error('no state');
+    EV = d.events; seq = d.seq; online = true;
   } catch { online = false; EV = {}; }
 }
 const post = (path, body) => fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
@@ -46,6 +58,7 @@ const ON = {
   update({ event: id, idx, update }) {
     const ev = EV[id]; if (!ev || ev.updates[idx]) return;
     ev.updates[idx] = { ...update, comments: 0, last: null, reacts: 40 + idx * 57 };
+    const cl = view.querySelector(`[data-cover-last="${id}"]`); if (cl) { cl.innerHTML = `<b>${esc(update.time)}</b> ${esc(update.text)}`; pop(cl); }
     if (here[0] === 'e' && here[1] === id) return addUpdate(id, idx);
     unread[id] = (unread[id] || 0) + 1;
     if (S.follows.includes(id)) {
@@ -65,7 +78,7 @@ const ON = {
   watching(w) { for (const id in w) { if (EV[id]) EV[id].watching = w[id]; view.querySelectorAll(`[data-watch="${id}"]`).forEach(el => { el.textContent = fmt(w[id]); }); } },
   react({ event: id, upd, n }) { if (EV[id]?.updates[upd]) EV[id].updates[upd].reacts = n; const b = view.querySelector(`[data-react="${id}:${upd}"] span`); if (b) b.textContent = n; },
   follow({ event: id, n }) { if (EV[id]) EV[id].followers = n; },
-  async reset() { await load(); render(false); }, // la diretta è ripartita da capo sul server
+  async reset() { await load(); if ((location.hash.split('/')[1] || 'home') !== here[0]) route(); else render(false); }, // server tornato o ripartito: un link a un evento si apre ora
 };
 let seq = 0;
 const me = Math.random().toString(36).slice(2, 12);
@@ -74,24 +87,25 @@ function listen() {
   const es = window.EventSource && new EventSource('/api/stream');
   if (es) {
     for (const type of Object.keys(ON)) es.addEventListener(type, e => { heard = true; ON[type](JSON.parse(e.data)); });
-    es.addEventListener('hello', () => { heard = true; });
+    es.addEventListener('hello', () => { heard = true; if (!online) ON.reset(); });
   }
   setTimeout(() => { if (heard) return; es?.close(); poll(); }, 5000);
 }
 async function poll() {
   try {
     const r = await fetch(`/api/poll?since=${seq}&c=${me}`, { cache: 'no-store' }).then(x => x.json());
-    if (r.seq < seq) { seq = r.seq; await ON.reset(); } // il server è ripartito
+    if (!online || r.seq < seq) { await ON.reset(); r.events = []; } // il server è tornato o è ripartito
     for (const e of r.events) { seq = e.seq; ON[e.type]?.(e.data); }
     seq = Math.max(seq, r.seq);
   } catch { /* rete assente: si riprova */ }
-  setTimeout(poll, 2000);
+  setTimeout(poll, document.hidden ? 15000 : 2000); // scheda nascosta: poche richieste
 }
 const pop = el => { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); };
 
 // ---------- notifiche ----------
 const NOTES = [];
 function notify(icon, title, body, to) {
+  const i = NOTES.findIndex(n => n.title === title && n.body === body); if (i >= 0) NOTES.splice(i, 1); // niente doppioni (promemoria acceso, spento, riacceso)
   NOTES.unshift({ icon, title, body, to, read: false });
   bell();
   if (location.hash !== to) push(title, body, to);
@@ -124,10 +138,11 @@ function syncPlayer() { // la pagina dell'episodio, se aperta, mostra lo stesso 
   view.querySelector('[data-progress]').style.width = (t / total * 100) + '%';
   view.querySelector('[data-time]').textContent = `${ft(t)} / ${ft(total)}`;
 }
+function togglePlayer() { if (!P.on && P.t >= P.total) P.t = 0; P.on = !P.on; mini(); syncPlayer(); } // finito → riparte da capo
 setInterval(() => { if (P.on) { P.t = Math.min(P.total, P.t + 6); if (P.t >= P.total) P.on = false; mini(); syncPlayer(); } }, 1000); // shortcut: niente audio vero, 6 s di episodio al secondo
 
 // ---------- pezzi riusati ----------
-const av = (name, c) => `<span class="av" style="background: var(--${/^t([1-9]|10)$/.test(c) ? c : 't8'})">${esc((name || '?')[0])}</span>`;
+const av = (name, c) => `<span class="av" style="background: var(--${/^t([1-9]|10)$/.test(c) ? c : 't8'})">${esc([...(name || '?')][0])}</span>`;
 const preview = c => `${av(c.name, c.color)}<span><b>${esc(c.name)}</b> ${esc(c.text)}</span>`;
 const commentLi = c => `<li class="cm${c.mine ? ' mine' : ''}" data-cid="${c.id}">${av(c.name, c.color)}<div><b>${esc(c.name)}</b> <small>${ago(c.ts)}</small><p>${esc(c.text)}</p></div></li>`;
 function pieceCard(id, i = 0) {
@@ -159,7 +174,7 @@ const bellBtn = () => `<button class="icon-btn" data-bell aria-label="Notificati
 const topBar = title => `<header class="bar home"><img src="../assets/factanza-f.png" alt=""><b>${title}</b><a class="streak" href="#/play" title="Weeks of quiz in a row">${ic('fire', true)} ${S.streak}</a>${bellBtn()}</header>`;
 const back = (to = '#/', right = '') => `<header class="bar"><a class="icon-btn" href="${to}" aria-label="Back">${ic('arrow-left')}</a><img src="../assets/factanza-f.png" alt="Factanza">${right || `<span class="streak">${ic('fire', true)} ${S.streak}</span>`}</header>`;
 const storyTag = st => EV[st] ? `<a class="story-tag" href="#/e/${st}">${status(EV[st])}<b>${EV[st].title}</b>${ic('caret-right')}</a>` : '';
-const offline = () => online ? '' : `<p class="offline">${ic('wifi-slash')} Live is offline: start the server with <code>npm start</code>.</p>`;
+const offline = () => online ? '' : `<p class="offline">${ic('wifi-slash')} The live is taking a break: it comes back by itself in a moment.</p>`;
 
 // ---------- tempo passato e richiesta di salvare i progressi ----------
 function markSeen(id) {
@@ -198,7 +213,7 @@ function streakTile() {
 function quizRow() { return `<div class="pins pins-solo">${streakTile()}</div>`; }
 function rerank(id) { // il live con la novità passa in testa alla fila e resta acceso finché non lo apri (FLIP: gli altri scivolano al loro posto)
   const box = view.querySelector('[data-board]'), old = box && box.querySelector(`[data-row="${id}"]`);
-  if (!old) return render(false);
+  if (!old) return refreshBoard();
   const first = new Map([...box.children].map(r => [r, r.getBoundingClientRect()]));
   const was = first.get(old);
   old.outerHTML = pinTile(id);
@@ -216,18 +231,21 @@ function dayCover(id) { // la copertina del giorno: il live più caldo, come una
   return `<article class="day-cover fz-entra" style="--c: var(--${ev.color})">
     <a class="day-photo" href="#/e/${id}"><img src="${ev.image}" alt=""><span class="day-top">${status(ev)}<span class="chip">${ev.kind}</span></span>
       <h1>${marked(ev.title, ev.mark)}</h1><img class="f" src="../assets/factanza-f.png" alt=""></a>
-    <div class="day-foot"><p><b>${esc(last.time)}</b> ${esc(last.text)}</p>
+    <div class="day-foot"><p data-cover-last="${id}"><b>${esc(last.time)}</b> ${esc(last.text)}</p>
       <span class="day-actions">${faces()}<small>${ev.live ? `<b data-watch="${id}">${fmt(ev.watching)}</b> watching` : `${fmt(ev.followers)} following`}</small>${followBtn(id)}</span></div></article>`;
 }
+const pinnedIds = () => S.follows.filter(id => EV[id]).sort((a, b) => lit.has(b) - lit.has(a));
+const board = pinned => `${pinned.map(pinTile).join('')}${streakTile()}
+    ${pinned.length ? '' : `<p class="pins-hint">${ic('push-pin', true)} Follow a live and it stays here, next to your quiz.</p>`}`;
+const refreshBoard = () => { const b = view.querySelector('[data-board]'); if (b) b.innerHTML = board(pinnedIds()); };
 V.home = () => {
-  const pinned = S.follows.filter(id => EV[id]).sort((a, b) => lit.has(b) - lit.has(a));
+  const pinned = pinnedIds();
   const lives = Object.keys(EV).filter(id => EV[id].live || EV[id].upcoming);
   const hero = lives.find(id => !pinned.includes(id) && EV[id].live) || lives.find(id => EV[id].live) || lives[0];
   const more = lives.filter(id => id !== hero && !pinned.includes(id));
   const last = S.seen.at(-1), nextUp = last && PIECES[last].next.find(n => !S.seen.includes(n));
   return `${topBar('Factanza')}${offline()}
-  <section class="pins-block" aria-label="Pinned"><div class="pins" data-board>${pinned.map(pinTile).join('')}${streakTile()}
-    ${pinned.length ? '' : `<p class="pins-hint">${ic('push-pin', true)} Follow a live and it stays here, next to your quiz.</p>`}</div></section>
+  <section class="pins-block" aria-label="Pinned"><div class="pins" data-board>${board(pinned)}</div></section>
   ${hero ? `<section class="block">${dayCover(hero)}</section>` : ''}
   ${more.length ? `<section class="block"><h2 class="sec">More lives</h2><div class="rail">${more.map(liveCard).join('')}</div></section>` : ''}
   <section class="block"><h2 class="sec">Today in a minute</h2><div class="covers">${['c1', 'c2', 'c3'].map(cover).join('')}</div></section>
@@ -426,6 +444,8 @@ V.you = () => {
 // ---------- router ----------
 const TAB = { home: 'home', e: 'home', c: 'home', a: 'home', v: 'home', listen: 'listen', show: 'listen', p: 'listen', play: 'play', quiz: 'play', game: 'play', learn: 'learn', course: 'learn', lesson: 'learn', you: 'you' };
 function valid(name, id) {
+  if (id !== undefined && /^(c|a|p|v|e|show|course|lesson)$/.test(name) && !Object.hasOwn(({ c: PIECES, a: PIECES, p: PIECES, v: PIECES, e: EV, show: PODCASTS, course: COURSES, lesson: COURSES })[name], id)) return false; // "constructor" non è un pezzo
+  if (name === 'lesson' && !COURSES[id]?.lesson) return false; // non tutti i corsi hanno la lezione di prova
   return ({ c: PIECES, a: PIECES, p: PIECES, v: PIECES, e: EV, show: PODCASTS, course: COURSES, lesson: COURSES })[name]?.[id] !== undefined || !({ c: 1, a: 1, p: 1, v: 1, e: 1, show: 1, course: 1, lesson: 1 })[name];
 }
 function render(anim = true) {
@@ -440,7 +460,7 @@ function route() {
   if (!location.hash || location.hash === '#') { if (S.fromIg && !S.seen.length) { location.replace('#/c/c1'); return; } }
   let [, name = 'home', id] = location.hash.split('/');
   if (name === '') name = 'home';
-  if (!V[name] || !valid(name, id)) name = 'home';
+  if (!Object.hasOwn(V, name) || !valid(name, id)) name = 'home';
   here = [name, id];
   render();
   document.querySelectorAll('.tabs a').forEach(a => a.toggleAttribute('aria-current', a.dataset.tab === TAB[name]));
@@ -471,17 +491,21 @@ function videoCaptions(captions) {
 // ---------- foglio dal basso e avvisi ----------
 const sheet = $('#sheet');
 let thread = null;
+let sheetT, sheetFrom;
 function openSheet(html, cls = '') {
-  thread = null;
-  sheet.innerHTML = `<div class="sheet-bg" data-close></div><div class="sheet-card ${cls}" role="dialog" aria-modal="true">${html}</div>`;
-  sheet.hidden = false;
+  thread = null; clearTimeout(sheetT); if (sheet.hidden) sheetFrom = document.activeElement;
+  sheet.innerHTML = `<div class="sheet-bg" data-close></div><div class="sheet-card ${cls}" role="dialog" aria-modal="true" tabindex="-1">${html}</div>`;
+  const card = sheet.querySelector('.sheet-card'), h = card.querySelector('h2, b');
+  card.setAttribute('aria-label', h ? h.textContent.trim().slice(0, 80) : 'Details');
+  sheet.hidden = false; card.focus({ preventScroll: true });
   requestAnimationFrame(() => sheet.classList.add('open'));
 }
 function closeSheet(now) {
   thread = null;
   if (sheet.hidden) return;
   sheet.classList.remove('open');
-  if (now) sheet.hidden = true; else setTimeout(() => { sheet.hidden = true; }, 250);
+  sheetFrom?.focus?.({ preventScroll: true }); sheetFrom = null;
+  if (now) sheet.hidden = true; else sheetT = setTimeout(() => { sheet.hidden = true; }, 250);
 }
 function appendComment(c) { const ul = $('#sheet [data-list]'); if (!ul) return; ul.querySelector('.cm-empty')?.remove(); ul.insertAdjacentHTML('beforeend', commentLi(c)); ul.scrollTop = ul.scrollHeight; }
 async function threadSheet(id, i) {
@@ -546,20 +570,21 @@ document.addEventListener('click', e => {
     S.follows = on ? [...S.follows, id] : S.follows.filter(x => x !== id); save();
     document.querySelectorAll(`[data-follow="${id}"]`).forEach(b => { b.outerHTML = followBtn(id); });
     post('/api/follow', { event: id, on });
+    refreshBoard();
     if (on) info('push-pin', ev.upcoming ? 'Reminder on' : 'Pinned to your Home', ev.upcoming ? `We'll notify you when it starts: ${ev.upcoming}` : `We'll notify you on every update of ${ev.short}`);
     return;
   }
   if (d.share) { const ev = EV[d.share]; return shareSheet(ev.title, ev.live ? 'Follow it live with me on Factanza' : 'Follow it with me on Factanza', ev.color, location.origin + location.pathname + '#/e/' + d.share); }
   if (d.shareTo) { closeSheet(); return info('share-network', `Shared to ${d.shareTo}`, `In the real app this opens ${d.shareTo} with the link`); }
-  if (d.copy) { navigator.clipboard?.writeText(d.copy).catch(() => {}); closeSheet(); return info('link', 'Link copied', 'Whoever opens it lands on the live, no sign-up'); }
+  if (d.copy) { navigator.clipboard?.writeText(d.copy).catch(() => {}); closeSheet(); return info('link', 'Link copied', 'Whoever opens it lands right here, no sign-up'); }
   if ('recap' in d) return shareSheet('My November on Factanza', `${S.minutes} minutes · ${S.streak}-week quiz streak · ${S.follows.length} lives`, 't8', location.origin + location.pathname);
   if (d.ep) {
     if (d.ep === 'briefing') return playEp('briefing', 'Your briefing', 'Made for you · 8 min', 't5', 8);
     const [key, i] = d.ep.split(':'), s = PODCASTS[key], ep = s.eps[+i];
     return playEp(`${key}:${i}`, ep.title, s.name, s.color, ep.min);
   }
-  if (d.play) { const p = PIECES[d.play]; if (P.key === d.play) { P.on = !P.on; mini(); syncPlayer(); } else playEp(d.play, p.title.split(' · ')[1], p.show, p.color, p.minutes); return; }
-  if ('togglePlay' in d) { P.on = !P.on; mini(); syncPlayer(); return; }
+  if (d.play) { const p = PIECES[d.play]; if (P.key === d.play) togglePlayer(); else playEp(d.play, p.title.split(' · ')[1], p.show, p.color, p.minutes); return; }
+  if ('togglePlay' in d) return togglePlayer();
   if (d.term) {
     const term = TERMS[d.term];
     S.minutes += 1; save();
