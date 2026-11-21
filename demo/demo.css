@@ -247,7 +247,7 @@ code { font: 600 .85em/1 ui-monospace, monospace; background: var(--fz-bianco); 
 .upd-foot { display: flex; gap: 8px; }
 .react, .talk { display: inline-flex; align-items: center; gap: 5px; min-height: 34px; padding: 0 10px; font-weight: 700; font-size: .85rem; background: var(--fz-carta); border: 2px solid var(--fz-notte); border-radius: var(--fz-r); }
 .upd.big :is(.react, .talk) { background: var(--fz-bianco); }
-.react.on { background: var(--t10); color: #fff; }
+.react.on, .upd.big .react.on { background: var(--t10); color: #fff; }
 .preview { display: flex; align-items: center; gap: 8px; padding: 6px 8px; text-align: left; font-size: .88rem; background: transparent; border: 0; border-top: 1px dashed var(--fz-notte); width: 100%; }
 .preview[hidden] { display: none; }
 .preview > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
