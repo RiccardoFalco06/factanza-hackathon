@@ -7,6 +7,8 @@ Serve il sito (`/`) e la demo (`/demo/`), manda la diretta ai telefoni e salva c
 ```bash
 npm start          # http://127.0.0.1:8790/demo/
 npm run share      # (in un altro terminale) link pubblico per telefoni e QR, cambia a ogni avvio
+# npm run share ripubblica anche su https://factanza-demo.vercel.app (link fisso: pagine da Vercel, /api girato al tunnel).
+# La copia statica sta in ~/Projects/factanza-demo-web, fuori dal repo. Senza Vercel: NO_VERCEL=1 npm run share
 npm run reset-live # fa ripartire la diretta da capo (lo fa anche da sola ogni 8 minuti)
 ```
 
