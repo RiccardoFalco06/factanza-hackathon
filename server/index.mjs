@@ -45,7 +45,14 @@ function catchUp() { // la diretta riprende dal punto giusto del giro, senza man
 }
 
 const clients = new Set();
-const send = (type, data) => { const line = `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`; for (const c of clients) c.write(line); };
+// registro delle ultime novità: chi non riceve il flusso (alcuni tunnel lo trattengono) le chiede ogni 2 secondi con /api/poll
+const LOG = []; let seq = 0;
+const pollers = new Map(); // id del telefono → ultima volta che ha chiesto
+const viewers = () => clients.size + [...pollers.values()].filter(t => Date.now() - t < 10_000).length;
+const send = (type, data) => {
+  LOG.push({ seq: ++seq, type, data }); if (LOG.length > 300) LOG.shift();
+  const line = `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`; for (const c of clients) c.write(line);
+};
 
 let busy = false;
 async function tick() {
@@ -65,7 +72,7 @@ async function tick() {
 // la community di esempio commenta solo quando qualcuno guarda
 let botAt = 0;
 setInterval(() => {
-  if (!clients.size || Date.now() < botAt) return;
+  if (!viewers() || Date.now() < botAt) return;
   botAt = Date.now() + 2500 + Math.random() * 3500;
   const live = Object.keys(EVENTS).filter(id => EVENTS[id].live);
   const id = live[Math.floor(Math.random() * live.length)], ev = EVENTS[id];
@@ -81,8 +88,8 @@ async function post(event, upd, name, color, text, bot) {
   send('comment', { event, upd, comment: c, count });
   return c;
 }
-const watching = id => EVENTS[id].watching ? EVENTS[id].watching + clients.size + Math.round(Math.sin(Date.now() / 9000 + id.length) * 37) : 0;
-setInterval(() => { if (clients.size) send('watching', Object.fromEntries(Object.keys(EVENTS).map(id => [id, watching(id)]))); }, 4000);
+const watching = id => EVENTS[id].watching ? EVENTS[id].watching + viewers() + Math.round(Math.sin(Date.now() / 9000 + id.length) * 37) : 0;
+setInterval(() => { if (viewers()) send('watching', Object.fromEntries(Object.keys(EVENTS).map(id => [id, watching(id)]))); }, 4000);
 const reactBase = upd => 40 + upd * 57;
 
 async function state() {
@@ -97,7 +104,7 @@ async function state() {
       updates: items(id).map((u, i) => { const s = by[`${id}:${i}`]; return { ...u, comments: s ? +s.n : 0, reacts: reactBase(i) + (reacts[`${id}:${i}`] || 0),
         last: s ? { id: s.last_id, name: s.last_name, color: s.last_color, text: s.last_text, bot: s.last_bot, ts: +s.last_ts } : null }; }) };
   }
-  return { events, cycleStart, cycle: CYCLE };
+  return { events, cycleStart, cycle: CYCLE, seq };
 }
 
 // all'avvio: riprende il giro salvato su Supabase, oppure ne comincia uno nuovo; la prima volta mette i commenti di partenza
@@ -144,12 +151,17 @@ const server = createServer(async (req, res) => {
   try {
     if (path === '/api/state') return json(res, 200, await state());
     if (path === '/api/stream') {
-      res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive', 'x-accel-buffering': 'no' });
-      res.write('retry: 3000\n\n');
+      res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache, no-transform', connection: 'keep-alive', 'x-accel-buffering': 'no' });
+      res.write(`retry: 3000\nevent: hello\ndata: {"seq":${seq}}\n\n`);
       clients.add(res);
       const ping = setInterval(() => res.write(': ping\n\n'), 20_000);
       req.on('close', () => { clearInterval(ping); clients.delete(res); });
       return;
+    }
+    if (path === '/api/poll') {
+      const since = +url.searchParams.get('since') || 0, id = String(url.searchParams.get('c') || '').slice(0, 40);
+      if (id) { pollers.set(id, Date.now()); if (pollers.size > 2000) pollers.clear(); }
+      return json(res, 200, { seq, events: since > seq ? [] : LOG.filter(e => e.seq > since) });
     }
     if (path === '/api/comments' && req.method === 'GET') {
       const ev = url.searchParams.get('event'), upd = +url.searchParams.get('upd');

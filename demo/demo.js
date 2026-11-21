@@ -34,17 +34,17 @@ const lit = new Set(); // righe del tabellone accese finché non le apri
 async function load() {
   try {
     const r = await fetch('/api/state', { cache: 'no-store' });
-    EV = (await r.json()).events; online = true;
+    const d = await r.json(); EV = d.events; seq = d.seq; online = true;
   } catch { online = false; EV = {}; }
 }
 const post = (path, body) => fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
   .then(async r => ({ ok: r.ok, data: await r.json().catch(() => ({})) })).catch(() => ({ ok: false, data: { error: "You're offline: the comment was not sent." } }));
 
-function listen() {
-  if (!window.EventSource) return;
-  const es = new EventSource('/api/stream');
-  es.addEventListener('update', e => {
-    const { event: id, idx, update } = JSON.parse(e.data), ev = EV[id]; if (!ev) return;
+// novità dal server: prima il flusso continuo (Server-Sent Events); se entro 5 s non arriva niente
+// (alcuni tunnel lo trattengono) si chiede al server ogni 2 secondi cosa è cambiato
+const ON = {
+  update({ event: id, idx, update }) {
+    const ev = EV[id]; if (!ev || ev.updates[idx]) return;
     ev.updates[idx] = { ...update, comments: 0, last: null, reacts: 40 + idx * 57 };
     if (here[0] === 'e' && here[1] === id) return addUpdate(id, idx);
     unread[id] = (unread[id] || 0) + 1;
@@ -53,23 +53,39 @@ function listen() {
       if (S.notify.events) notify('broadcast', ev.short, update.text, `#/e/${id}`);
       if (here[0] === 'home') rerank(id);
     }
-  });
-  es.addEventListener('comment', e => {
-    const { event: id, upd, comment, count } = JSON.parse(e.data), u = EV[id]?.updates[upd]; if (!u) return;
+  },
+  comment({ event: id, upd, comment, count }) {
+    const u = EV[id]?.updates[upd]; if (!u) return;
     u.comments = count; u.last = comment;
     const n = view.querySelector(`[data-count="${id}:${upd}"]`); if (n) n.textContent = count;
     const p = view.querySelector(`[data-preview="${id}:${upd}"]`);
     if (p) { p.innerHTML = preview(comment); p.hidden = false; pop(p); }
     if (thread && thread[0] === id && thread[1] === upd && !$('#sheet [data-cid="' + comment.id + '"]')) appendComment(comment);
-  });
-  es.addEventListener('watching', e => {
-    const w = JSON.parse(e.data);
-    for (const id in w) { if (EV[id]) EV[id].watching = w[id]; view.querySelectorAll(`[data-watch="${id}"]`).forEach(el => { el.textContent = fmt(w[id]); }); }
-  });
-  es.addEventListener('react', e => { const { event: id, upd, n } = JSON.parse(e.data); if (EV[id]?.updates[upd]) EV[id].updates[upd].reacts = n; const b = view.querySelector(`[data-react="${id}:${upd}"] span`); if (b) b.textContent = n; });
-  es.addEventListener('follow', e => { const { event: id, n } = JSON.parse(e.data); if (EV[id]) EV[id].followers = n; });
-  es.addEventListener('reset', async () => { await load(); render(false); }); // la diretta è ripartita da capo sul server
-  es.onopen = () => { if (!online) load().then(() => render(false)); };
+  },
+  watching(w) { for (const id in w) { if (EV[id]) EV[id].watching = w[id]; view.querySelectorAll(`[data-watch="${id}"]`).forEach(el => { el.textContent = fmt(w[id]); }); } },
+  react({ event: id, upd, n }) { if (EV[id]?.updates[upd]) EV[id].updates[upd].reacts = n; const b = view.querySelector(`[data-react="${id}:${upd}"] span`); if (b) b.textContent = n; },
+  follow({ event: id, n }) { if (EV[id]) EV[id].followers = n; },
+  async reset() { await load(); render(false); }, // la diretta è ripartita da capo sul server
+};
+let seq = 0;
+const me = Math.random().toString(36).slice(2, 12);
+function listen() {
+  let heard = false;
+  const es = window.EventSource && new EventSource('/api/stream');
+  if (es) {
+    for (const type of Object.keys(ON)) es.addEventListener(type, e => { heard = true; ON[type](JSON.parse(e.data)); });
+    es.addEventListener('hello', () => { heard = true; });
+  }
+  setTimeout(() => { if (heard) return; es?.close(); poll(); }, 5000);
+}
+async function poll() {
+  try {
+    const r = await fetch(`/api/poll?since=${seq}&c=${me}`, { cache: 'no-store' }).then(x => x.json());
+    if (r.seq < seq) { seq = r.seq; await ON.reset(); } // il server è ripartito
+    for (const e of r.events) { seq = e.seq; ON[e.type]?.(e.data); }
+    seq = Math.max(seq, r.seq);
+  } catch { /* rete assente: si riprova */ }
+  setTimeout(poll, 2000);
 }
 const pop = el => { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); };
 
