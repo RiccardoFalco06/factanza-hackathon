@@ -14,14 +14,16 @@
 <link rel="stylesheet" href="demo.css">
 </head>
 <body>
-<!-- Demo per l'Hackathon Factanza: contenuti inventati. Su telefono è a tutto schermo, su computer è una colonna da telefono. -->
+<!-- Demo per l'Hackathon Factanza: va aperta dal server (npm start), contenuti di esempio. Su telefono è a tutto schermo, su computer è una colonna da telefono. -->
 <div class="phone">
   <main id="view" tabindex="-1"></main>
+  <div id="mini" class="mini" hidden></div>
   <nav class="tabs" aria-label="Main">
-    <a href="#/" data-tab="home"><i class="ph-bold ph-house"></i><span>Home</span></a>
-    <a href="#/quiz" data-tab="quiz"><i class="ph-bold ph-lightning"></i><span>Quiz</span></a>
-    <a href="#/stories" data-tab="stories"><i class="ph-bold ph-path"></i><span>Stories</span></a>
-    <a href="#/you" data-tab="you"><i class="ph-bold ph-user"></i><span>You</span></a>
+    <a href="#/" data-tab="home"><i class="ph-bold ph-house" aria-hidden="true"></i><span>Home</span></a>
+    <a href="#/listen" data-tab="listen"><i class="ph-bold ph-headphones" aria-hidden="true"></i><span>Listen</span></a>
+    <a href="#/play" data-tab="play"><i class="ph-bold ph-game-controller" aria-hidden="true"></i><span>Play</span></a>
+    <a href="#/learn" data-tab="learn"><i class="ph-bold ph-graduation-cap" aria-hidden="true"></i><span>Learn</span></a>
+    <a href="#/you" data-tab="you"><i class="ph-bold ph-user" aria-hidden="true"></i><span>You</span></a>
   </nav>
   <div id="sheet" class="sheet" hidden></div>
   <div id="toast" class="toast" role="status" hidden></div>

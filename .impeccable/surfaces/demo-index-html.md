@@ -1,0 +1,16 @@
+---
+version: 1
+slug: "demo-index-html"
+primary_target: "demo/index.html"
+related_targets: []
+---
+
+Scope: the Factanza demo app (demo/), Operate mode. Audience: Gen Z arriving from Factanza's socials; the hackathon jury trying it from a QR. Job: follow live events (news and gossip) together with the community, keep the weekly quiz streak, and move naturally into Factanza's services (podcasts, game, Academy, books, newsletters). Constraints: real server on Riccardo's Mac (server/), English, example content labelled.
+
+## Direction contract
+THESIS: A Factanza carousel that never ends: Home opens like today's cover, with your pinned lives and quiz streak riding above it. Refuses the generic news-app feed of grey cards and the social timeline.
+OWN-WORLD: Tessera system (tokens.css): carta ground, navy ink and solid navy depth, saturated tile colours from the F, one yellow-highlighted keyword per title in Anton caps, the small 3D F bottom-left on every cover, black-and-white photos tinted with the event's tile colour, red live dot.
+STORY: The visitor sees what is live and what they pin, opens a live, reads updates as they land, comments with real people, shares it; the streak and notifications bring them back; podcasts, the game and Academy sit one tap away as parts of the same app.
+FIRST VIEWPORT: Top bar (F, Factanza, streak, bell). A horizontal pinned strip: one compact tile per pinned live (live dot, short title, last update, "n new") plus the quiz-streak tile; tiles reorder when an update lands. Below, full width, today's cover: the hottest live as a Factanza cover (duotone photo, Anton caps, highlighted word, F bottom-left) with Follow. Bottom tabs Home, Listen, Play, Learn, You; mini player above them when audio plays.
+FORM: "La copertina del giorno", position 6 on my ordered list, seed key 786ec9a7. Signature move: the pinned strip reranks in place (FLIP) and the tile stays lit until opened.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

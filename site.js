@@ -1,5 +1,5 @@
 // Comportamento del sito di presentazione. Quando ci sono demo e video basta riempire queste due righe.
-const DEMO_URL = '';   // link della demo pubblicata (es. https://….vercel.app). Vuoto = provvisorio: il QR apre questa pagina.
+const DEMO_URL = '';   // link fisso della demo, se un giorno ce n'è uno. Vuoto = la demo dello stesso indirizzo del sito (server sul Mac o tunnel).
 const VIDEO_SRC = '';  // file del video registrato con Recordly (es. assets/demo.mp4). Vuoto = segnaposto.
 
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -8,12 +8,12 @@ const clamp01 = x => Math.min(1, Math.max(0, x));
 // --- link e QR della chiusura ---
 // aperto come file dal Desktop non c'è un indirizzo da inquadrare: il QR aspetta il link della demo
 const local = location.protocol === 'file:';
-const url = DEMO_URL || (local ? '' : location.origin + location.pathname);
+const url = DEMO_URL || (local ? '' : location.origin + '/demo/');
 document.getElementById('demo-link').href = url || '#try';
 // scritte che dipendono dalla lingua (i18n.js): rifatte a ogni cambio
 function labels() {
-  document.getElementById('demo-url').textContent = DEMO_URL ? url.replace(/^https?:\/\//, '') : msg('demoSoon');
-  document.getElementById('qr-label').textContent = msg(DEMO_URL ? 'qrScan' : url ? 'qrTemp' : 'qrSoon');
+  document.getElementById('demo-url').textContent = url ? url.replace(/^https?:\/\//, '') : msg('demoSoon');
+  document.getElementById('qr-label').textContent = msg(url ? 'qrScan' : 'qrSoon');
 }
 labels();
 document.addEventListener('langchange', labels);

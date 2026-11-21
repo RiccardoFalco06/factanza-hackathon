@@ -1,5 +1,5 @@
-// Contenuti della demo: TUTTI INVENTATI (notizie, numeri, collaborazione con Zanichelli), in inglese come il sito.
-// Ogni contenuto ha un tema (story) e i collegamenti ai contenuti vicini: è la "rete" che tiene le persone dentro.
+// Contenuti fissi della demo (gli eventi live e i commenti arrivano dal server: server/events.mjs).
+// Di esempio: notizie, numeri, persone, episodi, collaborazione con Zanichelli. Veri i nomi dei servizi di Factanza.
 
 const PIECES = {
   c1: {
@@ -9,12 +9,12 @@ const PIECES = {
       { big: "Italy's 2027 budget", mark: 'what changes', after: 'if you are 25', note: 'Swipe →' },
       { big: 'Rent bonus', text: 'Up to €2,000 a year for renters under 31 with a contract in their own name. Where you are registered as a resident does not matter.' },
       { big: 'First job', text: 'Companies that hire under-30s pay less tax for three years: about €120 less in contributions per month for each new contract.' },
-      { big: 'When?', text: 'Parliament must approve the law by December 31. Until then, the numbers can still change.', note: 'Follow the story to know when they do' },
+      { big: 'When?', text: 'Parliament must approve the law by December 31. Until then, the numbers can still change.', note: 'Follow the live to know when they do' },
     ],
     next: ['p1', 'v1', 'a1'],
   },
   a1: {
-    kind: 'article', story: 'budget', minutes: 4, color: 't4',
+    kind: 'article', story: 'budget', minutes: 4, color: 't4', image: 'media/senato.jpg',
     title: 'Why the spread matters for your mortgage',
     kicker: 'Economy · Deep dive',
     body: [
@@ -32,7 +32,7 @@ const PIECES = {
     next: ['c1', 'a1'],
   },
   v1: {
-    kind: 'video', story: 'budget', minutes: 1, color: 't5',
+    kind: 'video', story: 'budget', minutes: 1, color: 't5', image: 'media/senato.jpg',
     title: 'The rent bonus in 60 seconds',
     captions: [['Under', '31?'], ['Up', 'to', '€2,000'], ['for', 'your', 'rent'], ['contract', 'in', 'your', 'name'], ['residence', "doesn't", 'matter']],
     next: ['c1', 'p1'],
@@ -68,31 +68,6 @@ const TERMS = {
   'GDP': { def: 'Gross domestic product: the value of all goods and services produced in a country in a year.', deep: 'What GDP does not measure', min: 3 },
 };
 
-const STORIES = {
-  budget: {
-    title: "Italy's 2027 budget", color: 't1', followers: '48.2k',
-    updates: [
-      { date: 'Nov 3', text: 'The first draft in 1 minute', piece: 'c1' },
-      { date: 'Nov 12', text: "The Chamber's changes, explained", piece: 'a1' },
-      { date: 'Today', text: "The Senate approves the text: what's left of the rent bonus", piece: 'v1', fresh: true },
-    ],
-  },
-  water: {
-    title: "Sicily's water crisis", color: 't3', followers: '12.9k',
-    updates: [
-      { date: 'Oct 20', text: 'Reservoirs at their lowest in 30 years', piece: 'c2' },
-      { date: 'Nov 15', text: '€400 million to fix the pipes', piece: 'c2' },
-    ],
-  },
-  ai: {
-    title: 'The AI Act in Italy', color: 't2', followers: '21.4k',
-    updates: [
-      { date: 'Sep 30', text: 'What is banned from today', piece: 'c3' },
-      { date: 'Nov 8', text: 'Job applications and AI: your rights', piece: 'c3' },
-    ],
-  },
-};
-
 // Quiz della settimana: ogni domanda rimanda al contenuto che la spiega
 const QUIZ = {
   week: 'Week 47', players: '12.4k',
@@ -103,11 +78,41 @@ const QUIZ = {
     { q: 'Which of these does the AI Act ban?', options: ['Chatbots at school', 'Social scoring of people', 'AI-made music'], ok: 1, piece: 'c3' },
     { q: 'By when must Parliament approve the budget?', options: ['June 30', 'September 1', 'December 31'], ok: 2, piece: 'c1' },
   ],
+  friends: [{ name: 'Giulia R.', c: 't1', score: 5 }, { name: 'Marco B.', c: 't3', score: 3 }, { name: 'Sofia L.', c: 't6', score: 2 }],
 };
 
-// I servizi di Factanza verso cui porta il tempo passato sulla piattaforma (Academy, abbonamento, eventi)
+// Podcast di Factanza (nomi veri, episodi di esempio). piece = episodio con la sua pagina.
+const PODCASTS = {
+  squattrinati: { name: 'Squattrinati', about: 'Money, for a generation that has little of it. Every Tuesday.', color: 't8',
+    eps: [{ title: 'Ep. 41 · Renting at 25', min: 12, piece: 'p1' }, { title: 'Ep. 40 · Your first payslip', min: 15 }] },
+  rewind: { name: 'Rewind', about: 'The history of the last 100 years, one fact at a time.', color: 't10',
+    eps: [{ title: 'The year Italy chose the Republic', min: 18 }, { title: 'How the euro arrived', min: 16 }] },
+  show: { name: 'The Factanza Show', about: 'The news of the week, told like a show by the newsroom.', color: 't4',
+    eps: [{ title: 'This week: budget, Sanremo and the AI Act', min: 34 }] },
+  fatti: { name: 'Tutti i fatti', about: 'The news of the day in a few minutes.', color: 't6',
+    eps: [{ title: 'Friday, November 20', min: 6 }, { title: 'Thursday, November 19', min: 6 }] },
+  oriana: { name: 'Oriana', about: 'The life and unreleased tapes of Oriana Fallaci.', color: 't9',
+    eps: [{ title: 'Episode 1', min: 28 }] },
+  sanremo: { name: 'Ogni maledetto Sanremo', about: 'Factanza Live from the Festival.', color: 't1', live: 'Live tonight · 22:00',
+    eps: [{ title: 'Live: the Big list, unpacked', min: 45 }] },
+};
+
+// Academy, libri, gioco: dentro la piattaforma, non link esterni. Il pagamento resta l'unico passo fuori (finto nella demo).
+const COURSES = {
+  dcs: { title: 'Digital Creator School', meta: '22 h of video · 50 lessons · 4 modules · two 1:1 mentoring calls', price: '€799', color: 't5',
+    lesson: { title: 'Lesson 1 · Why some posts travel', min: 9, outline: ['What makes people stop scrolling', 'The first second of a video', 'Writing a cover people save'] } },
+  ai: { title: 'AI Content School', meta: 'In a bundle with the Digital Creator School', price: 'Bundle', color: 't3' },
+};
+const WEBINAR = { title: 'Free live class: read the news without the anxiety', when: 'Thursday · 21:00' };
+const BOOKS = [
+  { title: 'Come siamo diventati schiavi felici', color: 't9' },
+  { title: 'Stare bene in un mondo che corre', color: 't6' },
+];
+const GAME = { title: 'The Social Contract', about: 'Our board game, rebuilt for the app: build the rules of a society for the common good, with up to 4 friends in 15 minutes.' };
+
+// Servizi di Factanza verso cui porta il tempo passato sulla piattaforma
 const SERVICES = {
-  academy: { title: 'Factanza Academy', text: 'Learn to explain the news on social media, with the people who make Factanza.', cta: 'See the course', icon: 'graduation-cap' },
+  academy: { title: 'Factanza Academy', text: 'Learn to explain the news on social media, with the people who make Factanza.', cta: 'See the courses', icon: 'graduation-cap', href: '#/learn' },
   plus: { title: 'Factanza Plus', text: 'Every deep dive, the quiz archive and early access to new formats.', cta: 'Try 7 days free', icon: 'star' },
-  event: { title: 'Factanza Live · Milan', text: 'An evening on the budget with the newsroom and two economists. December 12.', cta: 'Get a ticket', icon: 'ticket' },
+  event: { title: 'Factanza Awards', text: 'The community votes the best social projects on news, science and activism.', cta: 'Get a ticket', icon: 'ticket' },
 };

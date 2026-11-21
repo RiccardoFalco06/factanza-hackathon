@@ -1,0 +1,66 @@
+{
+  "title": "Factanza app · come si apre la Home",
+  "question": "Tre strutture per la Home (dove stanno eventi live fissati e quiz). Lo stile Tessera resta lo stesso: cambia solo l'organizzazione.",
+  "options": [
+    {
+      "id": "cover",
+      "label": "La copertina del giorno",
+      "kicker": "THE ROLL",
+      "lineage": "le copertine dei caroselli Factanza",
+      "thesis": "La Home si apre su una sola copertina grande del giorno, con sopra la fila dei live fissati e il quiz.",
+      "palette": ["#86c4ff", "#1a1d56", "#ffe000", "#d7007f", "#f6f6f6"],
+      "materials": ["tessere con spessore blu notte", "una parola evidenziata in giallo", "la F in basso a sinistra"],
+      "viewport": "In alto una fila compatta di live fissati (pallino rosso, aggiornamenti nuovi) e la serie del quiz; sotto, a tutta larghezza, la copertina del giorno; poi ascolta, impara, gioca.",
+      "risk": "La notizia del giorno può rubare spazio ai live, che sono il cuore.",
+      "wireframe": {"cols": 6, "rows": 12, "regions": [
+        {"label": "barra", "x": 0, "y": 0, "w": 6, "h": 1},
+        {"label": "live fissati + quiz (fila)", "x": 0, "y": 1, "w": 6, "h": 2, "accent": true},
+        {"label": "copertina del giorno", "x": 0, "y": 3, "w": 6, "h": 5},
+        {"label": "ascolta", "x": 0, "y": 8, "w": 6, "h": 1},
+        {"label": "impara · gioca", "x": 0, "y": 9, "w": 6, "h": 2},
+        {"label": "schede", "x": 0, "y": 11, "w": 6, "h": 1}
+      ]}
+    },
+    {
+      "id": "river",
+      "label": "Il fiume dei tuoi live",
+      "lineage": "i live blog delle redazioni",
+      "thesis": "La Home è un solo flusso in tempo reale: aggiornamenti dei live seguiti, commenti, quiz e contenuti, in ordine di arrivo.",
+      "palette": ["#f6f6f6", "#1a1d56", "#ffe000", "#831f82", "#d7007f"],
+      "materials": ["linea del tempo verticale", "tessere piccole per ogni evento", "commenti dentro il flusso"],
+      "viewport": "In alto i live fissati come filtri (tocchi e vedi solo quello); sotto il flusso: ogni aggiornamento con ora, evento, testo e i commenti più recenti; la scheda del quiz entra nel flusso quando la serie è a rischio.",
+      "risk": "Con pochi eventi seguiti il flusso sembra vuoto; servizi e contenuti finiscono in fondo.",
+      "wireframe": {"cols": 6, "rows": 12, "regions": [
+        {"label": "barra", "x": 0, "y": 0, "w": 6, "h": 1},
+        {"label": "filtri: live fissati", "x": 0, "y": 1, "w": 6, "h": 1, "accent": true},
+        {"label": "aggiornamento + commenti", "x": 0, "y": 2, "w": 6, "h": 3},
+        {"label": "quiz (serie a rischio)", "x": 0, "y": 5, "w": 6, "h": 2, "accent": true},
+        {"label": "aggiornamento", "x": 0, "y": 7, "w": 6, "h": 2},
+        {"label": "contenuto collegato", "x": 0, "y": 9, "w": 6, "h": 2},
+        {"label": "schede", "x": 0, "y": 11, "w": 6, "h": 1}
+      ]}
+    },
+    {
+      "id": "board",
+      "label": "Il tabellone dei live",
+      "lineage": "i tabelloni delle partenze",
+      "thesis": "In cima alla Home i live fissati e il quiz sono righe di un tabellone: quando arriva un aggiornamento la riga sale in cima e resta accesa finché non la apri.",
+      "palette": ["#86c4ff", "#1a1d56", "#ffe000", "#ea5b0c", "#f6f6f6"],
+      "materials": ["righe a tessera con numeri tabulari", "riga accesa in giallo", "spessore che spunta all'arrivo"],
+      "viewport": "Sotto la barra il tabellone: una riga per evento fissato (stato live, ultimo aggiornamento, quanti guardano, nuovi) e la riga del quiz con la serie; sotto, le copertine del giorno, ascolta, impara, gioca.",
+      "risk": "Se gli aggiornamenti arrivano spesso le righe si muovono troppo; va dosato.",
+      "wireframe": {"cols": 6, "rows": 12, "regions": [
+        {"label": "barra", "x": 0, "y": 0, "w": 6, "h": 1},
+        {"label": "riga live (accesa)", "x": 0, "y": 1, "w": 6, "h": 1, "accent": true},
+        {"label": "riga live", "x": 0, "y": 2, "w": 6, "h": 1},
+        {"label": "riga quiz + serie", "x": 0, "y": 3, "w": 6, "h": 1, "accent": true},
+        {"label": "copertine del giorno", "x": 0, "y": 4, "w": 6, "h": 3},
+        {"label": "ascolta", "x": 0, "y": 7, "w": 6, "h": 2},
+        {"label": "impara · gioca", "x": 0, "y": 9, "w": 6, "h": 2},
+        {"label": "schede", "x": 0, "y": 11, "w": 6, "h": 1}
+      ]}
+    }
+  ],
+  "reroll": true,
+  "steer": true
+}

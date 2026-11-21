@@ -3,3 +3,5 @@ node_modules/
 assets/riferimenti/
 .playwright-cli/
 .DS_Store
+server/data/
+demo/media/web/

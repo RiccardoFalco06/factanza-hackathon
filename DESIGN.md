@@ -147,3 +147,24 @@ Titoli con evidenziatore: interlinea 1,2, altrimenti il giallo copre le lettere 
 
 `assets/riferimenti/` contiene le foto del sito e le copertine dei caroselli. Sono materiale di Factanza:
 servono come riferimento in locale e non vanno pubblicati.
+
+## 8. App demo (`demo/`)
+
+Costruita il 2026-11-21 con la skill di design (contratto in `.impeccable/surfaces/demo-index-html.md`).
+Modo "Operate": prima si capisce dove sta tutto, poi si riconosce Factanza.
+
+- **Struttura scelta da Riccardo: la copertina del giorno.** In alto la fila dei fissati (live seguiti + serie del quiz),
+  sotto la copertina grande del live più caldo, poi altri live, caroselli, Listen, Learn, Play, storie lunghe.
+- **Schede in basso:** Home · Listen · Play · Learn · You. Il lettore dei podcast resta acceso sopra le schede.
+- **Mossa firma:** quando arriva un aggiornamento di un live seguito, la sua scheda passa in testa alla fila scivolando
+  (FLIP, 480 ms, curva del logo) e resta gialla finché non la apri. In più arriva la notifica in alto.
+- **Foto:** in bianco e nero moltiplicate sul colore della tessera dell'evento (`mix-blend-mode: multiply`), con la F
+  in basso a sinistra e il credito sulla foto. Libere da Wikimedia Commons in `demo/media/`; quella del GF Vip è presa
+  dal web (`demo/media/web/`, fuori da git).
+- **Titoli degli eventi:** Anton maiuscolo con una parola evidenziata (`mark` in `server/events.mjs`).
+- **Stato live:** etichetta magenta con il pallino che pulsa (l'unica animazione continua, perché indica dati davvero
+  in diretta); "in arrivo" su blu notte con l'orario; "Story" per le storie lunghe.
+- **Fascia colorata in cima alle schede fissate:** 7 px nel colore dell'evento, come la barra di tessere della F
+  (non un bordo spesso su un angolo arrotondato).
+- **Commenti:** avatar a tessera quadrata con l'iniziale; i propri commenti su giallo; regole visibili ("Moderated").
+- **Niente occhielli sopra i titoli:** il contesto (rubrica, minuti, domanda 2 di 5) va sotto il titolo.
