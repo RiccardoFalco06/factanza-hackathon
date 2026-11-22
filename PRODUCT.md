@@ -29,7 +29,7 @@ Not a news aggregator with AI recommendations. Factanza's own explanations ("the
 - Undecided: moderation policy for comments, real Zanichelli integration.
 
 ## Stack
-Delegated: plain HTML/CSS/JS front end (the existing demo), Node server with a SQLite file database and live updates pushed to the browser; public link through a tunnel from the Mac.
+Delegated: plain HTML/CSS/JS front end (the existing demo), Node server with data on Supabase (Postgres) and live updates pushed to the browser; public link through a tunnel from the Mac.
 
 ## Brand Commitments
 - Factanza's 3D F logo, the "Tessera" system in DESIGN.md/tokens.css (tiles with solid navy depth, one highlighted keyword per title, the small F bottom-left on every cover).

@@ -40,6 +40,7 @@ let here = ['home'];
 // ---------- server: stato iniziale + diretta ----------
 let EV = {}; // eventi come li manda il server
 let online = false;
+let REC = null; // copia registrata della diretta (recorded.json): la demo resta piena anche a server spento
 const unread = {}; // evento → aggiornamenti arrivati mentre non lo guardavi
 const lit = new Set(); // righe del tabellone accese finché non le apri
 async function load() {
@@ -47,7 +48,10 @@ async function load() {
     const r = await fetch('/api/state', { cache: 'no-store' });
     const d = await r.json(); if (!r.ok || !d || typeof d.events !== 'object') throw new Error('no state');
     EV = d.events; seq = d.seq; online = true;
-  } catch { online = false; EV = {}; }
+  } catch {
+    online = false; REC ??= await fetch('recorded.json').then(r => r.json()).catch(() => null);
+    EV = REC ? structuredClone(REC.events) : {};
+  }
 }
 const post = (path, body) => fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
   .then(async r => ({ ok: r.ok, data: await r.json().catch(() => ({})) })).catch(() => ({ ok: false, data: { error: "You're offline: the comment was not sent." } }));
@@ -174,7 +178,7 @@ const bellBtn = () => `<button class="icon-btn" data-bell aria-label="Notificati
 const topBar = title => `<header class="bar home"><img src="../assets/factanza-f.png" alt=""><b>${title}</b><a class="streak" href="#/play" title="Weeks of quiz in a row">${ic('fire', true)} ${S.streak}</a>${bellBtn()}</header>`;
 const back = (to = '#/', right = '') => `<header class="bar"><a class="icon-btn" href="${to}" aria-label="Back">${ic('arrow-left')}</a><img src="../assets/factanza-f.png" alt="Factanza">${right || `<span class="streak">${ic('fire', true)} ${S.streak}</span>`}</header>`;
 const storyTag = st => EV[st] ? `<a class="story-tag" href="#/e/${st}">${status(EV[st])}<b>${EV[st].title}</b>${ic('caret-right')}</a>` : '';
-const offline = () => online ? '' : `<p class="offline">${ic('wifi-slash')} The live is taking a break: it comes back by itself in a moment.</p>`;
+const offline = () => online ? '' : `<p class="offline">${ic('wifi-slash')} ${REC ? 'Live server is off: you are watching a recording of the live.' : 'The live is taking a break: it comes back by itself in a moment.'}</p>`;
 
 // ---------- tempo passato e richiesta di salvare i progressi ----------
 function markSeen(id) {
@@ -517,7 +521,7 @@ async function threadSheet(id, i) {
       <input name="t" placeholder="Say something to the community" maxlength="200" autocomplete="off" aria-label="Your comment" required><button aria-label="Send">${ic('paper-plane-right', true)}</button>
       <p class="form-err" role="alert" hidden></p></form>`, 'tall');
   thread = [id, i];
-  const r = await fetch(`/api/comments?event=${encodeURIComponent(id)}&upd=${i}`).then(x => x.json()).catch(() => null);
+  const r = !online && REC ? { comments: REC.comments[`${id}:${i}`] || [] } : await fetch(`/api/comments?event=${encodeURIComponent(id)}&upd=${i}`).then(x => x.json()).catch(() => null);
   const ul = $('#sheet [data-list]'); if (!ul || !thread || thread[0] !== id || thread[1] !== i) return;
   ul.innerHTML = r ? (r.comments.length ? r.comments.map(c => commentLi({ ...c, mine: c.name === S.name && !c.bot })).join('') : '<li class="cm-empty">No comments yet. Start the conversation.</li>') : '<li class="cm-empty">Comments are offline right now.</li>';
   ul.scrollTop = ul.scrollHeight;
@@ -622,7 +626,8 @@ document.addEventListener('submit', async e => {
   const text = f.t.value.trim(), err = f.querySelector('.form-err'); if (!text) return;
   const [id, i] = f.dataset.post.split(':'), btn = f.querySelector('button');
   btn.disabled = true;
-  const r = await post('/api/comments', { event: id, upd: +i, name: S.name || 'Guest', color: 't8', text });
+  const body = { event: id, upd: +i, name: S.name || 'Guest', color: 't8', text };
+  const r = !online && REC ? { ok: true, data: { comment: { ...body, id: `local${Date.now()}`, ts: Date.now() } } } : await post('/api/comments', body); // registrazione: il commento resta solo su questo telefono
   btn.disabled = false;
   if (!r.ok) { err.textContent = r.data.error || 'The comment was not sent.'; err.hidden = false; return; }
   err.hidden = true; f.t.value = '';

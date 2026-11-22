@@ -5,3 +5,6 @@ assets/riferimenti/
 .DS_Store
 server/data/
 demo/media/web/
+voti/server/data*.json
+voti/server/*.log
+voti/server/*.out

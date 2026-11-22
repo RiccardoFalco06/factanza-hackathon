@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f5f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121413" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Voti idee</title>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<style>
+  :root {
+    --bg: #f4f5f4; --surface: #ffffff; --line: #dfe2df; --text: #161a18; --muted: #5b625e;
+    --accent: #17764a; --accent-soft: #e3f1e9; --on-accent: #ffffff; --danger: #b3261e;
+    --r: 12px;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121413; --surface: #1b1e1c; --line: #2d322f; --text: #eef1ef; --muted: #9aa39e;
+      --accent: #46b981; --accent-soft: #1d3328; --on-accent: #0c1a12; --danger: #f2867e;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+             max(32px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+  main { max-width: 760px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  button, input { font: inherit; color: inherit; }
+  button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  h1 { font-size: 26px; letter-spacing: -0.02em; margin: 0; line-height: 1.1; }
+  h1 small { display: block; font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-top: 4px; }
+  h2 { font-size: 18px; margin: 0 0 12px; letter-spacing: -0.01em; }
+
+  .btn {
+    min-height: 44px; padding: 0 16px; border-radius: var(--r); border: 1px solid var(--line);
+    background: var(--surface); font-weight: 600; transition: transform .12s ease;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  #edit[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  /* tabella: prima colonna fissa, il resto scorre in orizzontale */
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding: 0 16px; }
+  table { border-collapse: separate; border-spacing: 6px; margin: -6px; }
+  th, td { padding: 0; }
+  thead th { font-size: 13px; font-weight: 600; color: var(--muted); vertical-align: bottom; text-align: center; padding-bottom: 2px; }
+  thead th.corner { text-align: left; }
+  .name { display: block; max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0 auto; }
+  tbody th {
+    position: sticky; left: 0; z-index: 1; background: var(--bg);
+    text-align: left; font-weight: 500; font-size: 15px; width: 44vw; max-width: 260px; min-width: 140px;
+    padding-right: 6px; box-shadow: 6px 0 0 var(--bg);
+  }
+  thead th.corner { position: sticky; left: 0; z-index: 1; background: var(--bg); box-shadow: 6px 0 0 var(--bg); }
+  .idea { display: block; overflow-wrap: anywhere; }
+
+  .cell {
+    width: 56px; height: 56px; border-radius: var(--r); border: 1px solid var(--line);
+    background: var(--surface); display: grid; place-items: center; font-size: 22px; color: transparent;
+    transition: transform .12s ease, background-color .15s ease, color .15s ease;
+  }
+  .cell:active { transform: scale(.92); }
+  .cell[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .cell:focus-visible, .btn:focus-visible, .del:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .del {
+    display: none; margin: 6px auto 0; width: 32px; height: 32px; border-radius: var(--r);
+    border: 1px solid var(--line); background: var(--surface); color: var(--danger); place-items: center;
+  }
+  tbody th .del { margin: 6px 0 0; }
+  .editing .del { display: grid; }
+
+  form { display: grid; gap: 6px; }
+  label { font-size: 14px; font-weight: 600; color: var(--muted); }
+  .row { display: flex; gap: 8px; }
+  input {
+    flex: 1; min-width: 0; min-height: 48px; padding: 0 14px; border-radius: var(--r);
+    border: 1px solid var(--line); background: var(--surface); font-size: 16px;
+  }
+  input::placeholder { color: var(--muted); }
+  input:focus { outline: 3px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .forms { display: grid; gap: 16px; }
+  @media (min-width: 640px) { .forms { grid-template-columns: 1fr 1fr; } }
+
+  .empty, .hint { color: var(--muted); margin: 0; }
+  .empty { padding: 20px; border: 1px dashed var(--line); border-radius: var(--r); }
+  td.hint { padding: 8px 0; }
+
+  ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  li {
+    display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px;
+    padding: 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line);
+  }
+  li.top { border-color: var(--accent); background: var(--accent-soft); }
+  .pos { font-weight: 700; font-size: 18px; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+  li.top .pos { color: var(--accent); }
+  .txt { min-width: 0; }
+  .txt strong { display: block; font-weight: 600; overflow-wrap: anywhere; }
+  .txt small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .count { font-weight: 700; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .count small { font-size: 14px; font-weight: 500; color: var(--muted); }
+
+  #status { margin: 0; padding: 12px 14px; border-radius: var(--r); border: 1px solid var(--danger); color: var(--danger); font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Voti idee<small>Hackathon Factanza</small></h1>
+    <button id="edit" class="btn" aria-pressed="false">Modifica</button>
+  </header>
+
+  <p id="status" role="status" hidden></p>
+
+  <section aria-labelledby="t-grid">
+    <h2 id="t-grid">Tabella</h2>
+    <div class="scroll" id="grid"></div>
+  </section>
+
+  <div class="forms">
+    <form id="add-idea">
+      <label for="in-idea">Nuova idea</label>
+      <div class="row">
+        <input id="in-idea" autocomplete="off" enterkeyhint="done" placeholder="Es. feed fatto dalla community">
+        <button class="btn primary" type="submit">Aggiungi</button>
+      </div>
+    </form>
+    <form id="add-name">
+      <label for="in-name">Nuovo nome</label>
+      <div class="row">
+        <input id="in-name" autocomplete="off" enterkeyhint="done" placeholder="Es. Bianca">
+        <button class="btn primary" type="submit">Aggiungi</button>
+      </div>
+    </form>
+  </div>
+
+  <section aria-labelledby="t-rank">
+    <h2 id="t-rank">Classifica</h2>
+    <div id="ranking"></div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
